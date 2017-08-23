@@ -1,0 +1,31 @@
+PROGRAM ProgramName;
+
+VAR
+   VariableName : VariableType;
+   VariableName : VariableType;
+   ...
+
+PROCEDURE ProcedureName;
+   variables here if necessary
+BEGIN
+    Some Code;
+END;
+
+FUNCTION FunctionName(variableList): VariableType;
+   variables here if necessary
+BEGIN
+   Some Code if necessary;
+   FunctionName := some expression
+   More Code if necessary;
+END;
+
+... more functions and procedures if necessary ...
+
+BEGIN
+    the main program block. It should be small and all
+    work should be delegated to the procedures and
+    functions.
+    It often consists of a WHILE loop that calls in 
+    turn procedures and functions in the appropriate
+    order.
+END.
