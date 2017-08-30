@@ -2,22 +2,87 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+
 #define SIZE 72
 int f = 0;
 int p = 0;
 int line = 1;
 FILE *file = NULL;
 FILE *outfile = NULL;
+
+/*
+	This clears the buffer.
+*/
+
 int clear(char* buffer){
 	int j = 0;
 	for(j = 0; j < 72; j++){
 		buffer[j] = '\0';
 	}
 }
+/*
+	This should identify all legal numbers.
+*/
+int long_real(char* buffer){
+	if(isdigit(buffer[0])){
+		if(buffer[0] - '0' == 0){
+			printf("Error in integer format. Cannot start with 0.\n");
+		}else{
+			int j = 1;
+			while(isdigit(buffer[j])){
+				j++;
+			}
+			if(buffer[j] == '.'){
+				//must include digit
+				j++;
+				if(!isdigit(buffer[j])){
+					printf("Error in format of float.\n");
+				}else{
+					while(isdigit(buffer[j])){
+						//keep incrementing
+						j++;
+					}
+					//found long
+					if(buffer[j] == 'E'){
+						j++;
+						if(buffer[j] == '+' || buffer[j] == '-'){
+							j++;
+							while(isdigit(buffer[j])){
+								j++;
+							}
+							//TO DO: Retract
+							//Save value of int
+							int k = 0;
+							printf("Found long int: ");
+							for(k = 0; k < j; k++){
+								printf("%c", buffer[k]);
+							}
+						}else if(isdigit(buffer[j])){
 
+						}else{
+							printf("Error in formatting of long real.\n");
+						}
+					}else{
+						//found a floating point number:
+						printf("Real number = ");
+						int k = 0;
+						for(k = 0; k < j; k++){
+							printf("%c",buffer[k]);
+						}
+					}
+				}
+			}
+				//TO DO: Retract one character and remove the number from the buffer
+		}
+	}
+			//Need other state
+			//Need state for if it's digitE+/-
+	return 1;
+}
 /*
 	Real Second!
 */
+
 /*
 	Identifer:
 	Up to 10 character
@@ -26,12 +91,26 @@ int clear(char* buffer){
 */
 int identifier(char* buffer){
 	int j = 0;
-	if(isalpha(buffer[0])){
+	if( isalpha(buffer[0]) ){
+		j = 1;
+		while( (isalpha(buffer[j]) || isdigit(buffer[j]))){
+			j++;
+		}
+		if(j < 11){
+			//found an identifier
+			int k = 0;
+			for(k = 0; k < j; k++){
+				printf("%c ", buffer[k]);
+			}
+		}else{
+			//identifier too long
+			printf("Identifer too long");
+		}
+	}
+/*
 		//check if each of the others are alpha or digit
 		j = 1;
-		while(1){
 			//got an identifier token
-			if(buffer[j] == ' '){
 				int k = 0;
 				for(k = 0; k < j; k++){
 					printf("%c", buffer[k]);
@@ -40,8 +119,10 @@ int identifier(char* buffer){
 				/*
 					Got a token. Update the buffer to have something other than the token
 				*/
+/*
 				return 1;
-			}
+
+		while(1){
 			if(isalpha(buffer[j]) || isdigit(buffer[j])){
 				if( j >= 10){
 					printf("identifier too long\n");
@@ -57,7 +138,9 @@ int identifier(char* buffer){
 		printf("not correct ID format\n");
 		return -1;
 	}
+*/
 }
+
 int real(char* buffer){
 
 
@@ -137,39 +220,8 @@ int main(){
 	if(status == -1){
 		printf("End of file.\n");
 	}else{
-		whitespace(buffer);
-		identifier(buffer);
+		//whitespace(buffer);
+		//identifier(buffer);
+		long_real(buffer);
 	}
-//	while(status != -1){
-//		//printf("%i.    %s\n", line, buffer);
-//		whitespace(buffer);
-//		clear(buffer);
-//		line = line + 1;
-//		i++;
-//		status = readline(buffer);
-
-//	}
-/*
-	FILE *file;
-	FILE *outfile = fopen("outfile.txt", "w");
-	int line_counter = 1;
-	if(outfile == NULL){
-		fprintf(stderr, "Can't open outfile\n");
-		return -1;
-	}
-	file = fopen("sourcefile.txt", "r");
-	if(file == NULL){
-		fprintf(stderr, "Can't open source file\n");
-		return -1;
-	}
-	char buffer[SIZE];
-
-	while(fgets(buffer, sizeof(buffer), file)){
-		fprintf(outfile,"%d. %s", line_counter, buffer);
-		line_counter++;
-		memset(buffer, '\0', SIZE);
-	}
-	fclose(file);
-	fclose(outfile);
-*/
 }
