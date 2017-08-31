@@ -56,11 +56,25 @@ int long_real(char* buffer){
 							//TO DO: Retract
 							//Save value of int
 							int k = 0;
-							printf("Found long int: ");
+							printf("Found Long Real: ");
 							for(k = 0; k < j; k++){
 								printf("%c", buffer[k]);
 							}
+							printf("\n");
 						}else if(isdigit(buffer[j])){
+							//Assume it is a plus:
+							j++;
+							while(isdigit(buffer[j])){
+								j++;
+							}
+							//TO DO: Retract
+							//Save value of int
+							int k = 0;
+							printf("Found Long Real: ");
+							for(k = 0; k < j; k++){
+								printf("%c", buffer[k]);
+							}
+							printf("\n");
 
 						}else{
 							printf("Error in formatting of long real.\n");
@@ -72,6 +86,8 @@ int long_real(char* buffer){
 						for(k = 0; k < j; k++){
 							printf("%c",buffer[k]);
 						}
+						printf("\n");
+
 					}
 				}
 			}else if(buffer[j] == 'E'){
@@ -82,20 +98,34 @@ int long_real(char* buffer){
 						j++;
 					}
 					int k = 0;
-					printf("Found long int: ");
+					printf("Found Long Real: ");
 					for(k = 0; k < j; k++){
 						printf("%c", buffer[k]);
 					}
+					printf("\n");
+				}else if(isdigit(buffer[j])){
+					//Assume it is a plus:
+					j++;
+					while(isdigit(buffer[j])){
+						j++;
+					}
+					//TO DO: Retract
+					//Save value of int
+					int k = 0;
+					printf("Found Long Real: ");
+					for(k = 0; k < j; k++){
+						printf("%c", buffer[k]);
+					}
+					printf("\n");
 				}
-//This should go in first if statement because it is never reached right now.
+			//This should go in first if statement because it is never reached right now.
 			}else{
-				printf("Found regular int\n");
+				printf("Found Real\n");
 				int k = 0;
-				printf("Found long int: ");
 				for(k = 0; k < j; k++){
 					printf("%c", buffer[k]);
 				}
-
+				printf("\n");
 			}
 				//TO DO: Retract one character and remove the number from the buffer
 		}
