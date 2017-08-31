@@ -25,6 +25,9 @@ int clear(char* buffer){
 */
 int long_real(char* buffer){
 	if(isdigit(buffer[0])){
+		/*
+			If it starts with a 0 it is an error condition.
+		*/
 		if(buffer[0] - '0' == 0){
 			printf("Error in integer format. Cannot start with 0.\n");
 		}else{
@@ -71,6 +74,28 @@ int long_real(char* buffer){
 						}
 					}
 				}
+			}else if(buffer[j] == 'E'){
+				j++;
+				if(buffer[j] == '+' || buffer[j] == '-'){
+					j++;
+					while(isdigit(buffer[j])){
+						j++;
+					}
+					int k = 0;
+					printf("Found long int: ");
+					for(k = 0; k < j; k++){
+						printf("%c", buffer[k]);
+					}
+				}
+//This should go in first if statement because it is never reached right now.
+			}else{
+				printf("Found regular int\n");
+				int k = 0;
+				printf("Found long int: ");
+				for(k = 0; k < j; k++){
+					printf("%c", buffer[k]);
+				}
+
 			}
 				//TO DO: Retract one character and remove the number from the buffer
 		}
