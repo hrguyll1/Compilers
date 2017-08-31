@@ -195,20 +195,29 @@ int identifier(char* buffer){
 	}
 */
 }
-
-int real(char* buffer){
-
-
-
-	return 0;
-}
-/*
-	Long Real first
-*/
-
 int relop(char* buffer){
+	int j = 0;
+	if(buffer[j] == '>' && buffer[j + 1] == '='){
+		//Found (relop, GE)
+		printf("Found (relop GE)\n");
+	}else if(buffer[j] == '>'){
 
+		printf("Found (relop, GT)\n");
+	}else if(buffer[j] == '='){
 
+		printf("Found (relop, EQ)\n");
+	}else if(buffer[j] == '<' && buffer[j + 1] == '='){
+
+		printf("Found (relop, LE)\n");
+	}else if(buffer[j] == '<' && buffer[j + 1] == '>'){
+
+		printf("Found (relop, NE)\n");
+	}else if(buffer[j] == '<'){
+
+		printf("Found (relop, LT)\n");
+	}else{
+		printf("Not a relop\n");
+	}
 
 
 	return 0;
@@ -277,6 +286,7 @@ int main(){
 	}else{
 		//whitespace(buffer);
 		//identifier(buffer);
-		long_real(buffer);
+		//long_real(buffer);
+		relop(buffer);
 	}
 }
