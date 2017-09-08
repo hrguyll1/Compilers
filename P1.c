@@ -4,6 +4,24 @@
 #include <ctype.h>
 
 #define SIZE 72
+/* Token Types */
+#define IDENTIFIER 	1
+#define INTEGER 	2
+#define REAL		3
+#define LONG_REAL	4
+#define RELOP		5
+#define ADDOP		6
+#define MULOP		7
+#define	PERIOD		8
+#define PAREN_OPEN	9
+#define PAREN_CLOSE	10
+#define	COLON		11
+#define BRACKET_OPEN	12
+#define BRACKET_CLOSE	13
+#define ASSIGNOP	14
+#define DOUBLE_PERIOD	15
+#define ERROR		99
+
 int f = 0;
 int p = 0;
 int line = 1;
@@ -13,7 +31,12 @@ FILE *outfile = NULL;
 /*
 	This clears the buffer.
 */
+int get_reserved_words(){
+	/*
+		Get reserved words and put them into an array.
+	*/
 
+}
 int clear(char* buffer){
 	int j = 0;
 	for(j = 0; j < 72; j++){
@@ -154,46 +177,44 @@ int identifier(char* buffer){
 		if(j < 11){
 			//found an identifier
 			int k = 0;
+			char id[j];
+			char new_buffer[SIZE];
+
 			for(k = 0; k < j; k++){
-				printf("%c ", buffer[k]);
+				//save identifier into a temporary buffer called id
+				id[k] = buffer[k];
 			}
+			printf("\n%s\n", id);
+
+			//Shift the buffer to the left and remove the token that was just recognized
+			//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
+			int z = 0;
+			for(k = j; k < 72; k++){
+				new_buffer[z] = buffer[k];
+				z++;
+			}
+			buffer = new_buffer;
+			printf("\n%s\n", buffer);
+
+			//What if we are at the end of a line?
+
 		}else{
 			//identifier too long
 			printf("Identifer too long");
-		}
-	}
-/*
-		//check if each of the others are alpha or digit
-		j = 1;
-			//got an identifier token
-				int k = 0;
-				for(k = 0; k < j; k++){
-					printf("%c", buffer[k]);
-				}
-				printf("\n");
-				/*
-					Got a token. Update the buffer to have something other than the token
-				*/
-/*
-				return 1;
 
-		while(1){
-			if(isalpha(buffer[j]) || isdigit(buffer[j])){
-				if( j >= 10){
-					printf("identifier too long\n");
-				}
-				j = j + 1;
-			}else{
-				printf("not correct ID format with buffer = %s\n", buffer);
-				return -1;
+			//Still remove the identifier that is too long
+			char new_buffer[SIZE];
+			int z = 0;
+			int k = 0;
+			for(k = j; k < 72; k++){
+				new_buffer[z] = buffer[k];
+				z++;
 			}
+			buffer = new_buffer;
+			printf("\n%s\n", buffer);
+
 		}
-	}else{
-		//not an identifier
-		printf("not correct ID format\n");
-		return -1;
 	}
-*/
 }
 int relop(char* buffer){
 	int j = 0;
@@ -257,13 +278,25 @@ int whitespace(char* buffer){
 		}else if(buffer[i] == '\t' || buffer[i] == ' '){
 			//found something other than a space
 			//update index f
-			/*
-				Trim the buffer by shifting it
-			*/
 			i = i + 1;
 		}else{
 			f = i;
-			printf("char[%i] = %c\n", i, buffer[f]);
+
+			/*
+				Finally found a character at location i.
+				Remove white space.
+			*/
+
+			char new_buffer[SIZE];
+			int z = 0;
+			int k = 0;
+			for(k = i; k < 72; k++){
+				new_buffer[z] = buffer[k];
+				z++;
+			}
+			buffer = new_buffer;
+			printf("\n%s\n", buffer);
+
 			return 1;
 
 		}
@@ -284,9 +317,9 @@ int main(){
 	if(status == -1){
 		printf("End of file.\n");
 	}else{
-		//whitespace(buffer);
+		whitespace(buffer);
 		//identifier(buffer);
 		//long_real(buffer);
-		relop(buffer);
+		//relop(buffer);
 	}
 }
