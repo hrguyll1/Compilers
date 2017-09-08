@@ -2,7 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-
+#include "headers.h"
 #define SIZE 72
 /* Token Types */
 #define IDENTIFIER 	1
@@ -221,6 +221,7 @@ int relop(char* buffer){
 	if(buffer[j] == '>' && buffer[j + 1] == '='){
 		//Found (relop, GE)
 		printf("Found (relop GE)\n");
+		//Now remove it
 	}else if(buffer[j] == '>'){
 
 		printf("Found (relop, GT)\n");
