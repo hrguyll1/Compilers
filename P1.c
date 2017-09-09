@@ -4,7 +4,9 @@
 #include <ctype.h>
 #include "headers.h"
 #define SIZE 72
+
 /* Token Types */
+
 #define IDENTIFIER 	1
 #define INTEGER 	2
 #define REAL		3
@@ -20,13 +22,14 @@
 #define BRACKET_CLOSE	13
 #define ASSIGNOP	14
 #define DOUBLE_PERIOD	15
-#define ERROR		99
+#define LEXERROR	99
 
 int f = 0;
 int p = 0;
 int line = 1;
 FILE *file = NULL;
 FILE *outfile = NULL;
+char reserved_words[21][SIZE];
 
 /*
 	This clears the buffer.
@@ -36,6 +39,24 @@ int get_reserved_words(){
 		Get reserved words and put them into an array.
 	*/
 
+	FILE *rw_file;
+	char l[SIZE];
+
+	rw_file = fopen("reservedwords.txt", "r");
+	if(rw_file == NULL){
+		printf("Could not read reserved words file.\n");
+	}
+	int i = 0;
+	while(1){
+		if(fgets(reserved_words[i], SIZE, rw_file) == NULL){
+			break;
+		}else if(i >= 21){
+			break;
+		}
+		i++;
+
+	}
+	fclose(rw_file);
 }
 int clear(char* buffer){
 	int j = 0;
@@ -177,14 +198,16 @@ int identifier(char* buffer){
 		if(j < 11){
 			//found an identifier
 			int k = 0;
-			char id[j];
+			char id[j + 1];
 			char new_buffer[SIZE];
 
 			for(k = 0; k < j; k++){
 				//save identifier into a temporary buffer called id
 				id[k] = buffer[k];
 			}
-			printf("\n%s\n", id);
+			//null terminate the new buffer
+			id[k] = '\0';
+			printf("(identifier, %s)\n", id);
 
 			//Shift the buffer to the left and remove the token that was just recognized
 			//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
@@ -193,25 +216,36 @@ int identifier(char* buffer){
 				new_buffer[z] = buffer[k];
 				z++;
 			}
-			buffer = new_buffer;
-			printf("\n%s\n", buffer);
-
+			for(z = 0; z < 72; z++){
+				buffer[z] = new_buffer[z];
+			}
 			//What if we are at the end of a line?
 
 		}else{
 			//identifier too long
-			printf("Identifer too long");
 
 			//Still remove the identifier that is too long
 			char new_buffer[SIZE];
 			int z = 0;
 			int k = 0;
+			char id[j + 1];
+			for(k = 0; k < j; k++){
+				//save identifier into a temporary buffer called id
+				id[k] = buffer[k];
+			}
+			id[k] = '\0';
+			printf("(identifier, %s, %d, ID too long)\n", id, LEXERROR);
+			//Shift the buffer to the left and remove the token that was just recognized
+			//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
+
 			for(k = j; k < 72; k++){
 				new_buffer[z] = buffer[k];
 				z++;
 			}
-			buffer = new_buffer;
-			printf("\n%s\n", buffer);
+			for(z = 0; z < 72; z++){
+				buffer[z] = new_buffer[z];
+			}
+
 
 		}
 	}
@@ -309,18 +343,22 @@ int whitespace(char* buffer){
 int main(){
 	file = fopen("sourcefile.txt", "r");
 	outfile = fopen("outfile.txt", "w");
-
+	get_reserved_words();
 	char buffer[SIZE];
 	int i = 0;
 	int j = 0;
 	int status = 0;
-	status = readline(buffer);
-	if(status == -1){
-		printf("End of file.\n");
-	}else{
-		whitespace(buffer);
-		//identifier(buffer);
+	//status = readline(buffer);
+//	if(status == -1){
+//		printf("End of file.\n");
+//	}else{
+	while(readline(buffer) != -1){
+//		whitespace(buffer);
+		identifier(buffer);
+		clear(buffer);
+
 		//long_real(buffer);
 		//relop(buffer);
 	}
+//	}
 }
