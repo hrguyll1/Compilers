@@ -18,3 +18,5 @@ var
 while
 call
 real
+write
+read

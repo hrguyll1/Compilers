@@ -23,13 +23,13 @@
 #define ASSIGNOP	14
 #define DOUBLE_PERIOD	15
 #define LEXERROR	99
-
+#define RW_SIZE		23
 int f = 0;
 int p = 0;
 int line = 1;
 FILE *file = NULL;
 FILE *outfile = NULL;
-char reserved_words[21][SIZE];
+char reserved_words[RW_SIZE][SIZE];
 
 /*
 	This clears the buffer.
@@ -50,7 +50,7 @@ int get_reserved_words(){
 	while(1){
 		if(fgets(reserved_words[i], SIZE, rw_file) == NULL){
 			break;
-		}else if(i >= 21){
+		}else if(i >= RW_SIZE){
 			break;
 		}
 		i++;

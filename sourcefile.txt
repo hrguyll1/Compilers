@@ -1,8 +1,7 @@
-<Program ProgramName;
+Programaaaa ProgramName
 Begin
 
-	Write('Hello World. Prepare to learn PASCAL!!');
+Write('Hello World. Prepare to learn PASCAL!!')
 
-	ReadIn;
-
-End.
+ReadIn
+End
