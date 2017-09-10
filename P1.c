@@ -86,7 +86,7 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 		buffer[z] = new_buffer[z];
 	}
 
-	printf("(id = %s, %s, %d)\n", id, token_type, attribute);
+	printf("(line %d, id: %s, %s, %d)\n", line, id, token_type, attribute);
 	return 1;
 }
 /*
@@ -119,31 +119,6 @@ int long_real(char* buffer){
 						Need to remove the broken number
 
 					*/
-/*
-					int k = 0;
-					char id[j + 1];
-					char new_buffer[SIZE];
-
-					for(k = 0; k < j; k++){
-						//save identifier into a temporary buffer called id
-						id[k] = buffer[k];
-					}
-					//null terminate the new buffer
-					id[k] = '\0';
-
-					//Shift the buffer to the left and remove the token that was just recognized
-					//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
-					int z = 0;
-					for(k = j; k < 72; k++){
-						new_buffer[z] = buffer[k];
-						z++;
-					}
-					for(z = 0; z < 72; z++){
-						buffer[z] = new_buffer[z];
-					}
-
-					printf("(LEXERR, %s, Error in format of float.)\n", id);
-*/
 					shift(buffer, j, "LEXERROR", LEXERROR);
 					whitespace(buffer);
 				}else{
@@ -211,11 +186,13 @@ int long_real(char* buffer){
 
 				}
 			}else{
-				printf("Found Real\n");
 				shift(buffer, j, "REAL", REAL);
 				whitespace(buffer);
 			}
 		}
+	}else{
+		//The thing is not a number so call the next machine:
+		//Addops
 	}
 	return 1;
 }
@@ -237,58 +214,13 @@ int identifier(char* buffer){
 			j++;
 		}
 		if(j < 11){
-			//found an identifier
-			int k = 0;
-			char id[j + 1];
-			char new_buffer[SIZE];
-
-			for(k = 0; k < j; k++){
-				//save identifier into a temporary buffer called id
-				id[k] = buffer[k];
-			}
-			//null terminate the new buffer
-			id[k] = '\0';
-			printf("(identifier, %s)\n", id);
-
-			//Shift the buffer to the left and remove the token that was just recognized
-			//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
-			int z = 0;
-			for(k = j; k < 72; k++){
-				new_buffer[z] = buffer[k];
-				z++;
-			}
-			for(z = 0; z < 72; z++){
-				buffer[z] = new_buffer[z];
-			}
-			//What if we are at the end of a line?
+			shift(buffer, j, "ID", IDENTIFIER);
 			whitespace(buffer);
 
 		}else{
 			//identifier too long
-
 			//Still remove the identifier that is too long
-			char new_buffer[SIZE];
-			int z = 0;
-			int k = 0;
-			char id[j + 1];
-			for(k = 0; k < j; k++){
-				//save identifier into a temporary buffer called id
-				id[k] = buffer[k];
-			}
-			id[k] = '\0';
-			printf("(identifier, %s, %d, ID too long)\n", id, LEXERROR);
-			//Shift the buffer to the left and remove the token that was just recognized
-			//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
-
-			for(k = j; k < 72; k++){
-				new_buffer[z] = buffer[k];
-				z++;
-			}
-			for(z = 0; z < 72; z++){
-				buffer[z] = new_buffer[z];
-			}
-
-			//Send into whitespace machine again.
+			shift(buffer, j, "LEXERROR", LEXERROR);
 			whitespace(buffer);
 		}
 
@@ -343,6 +275,10 @@ int readline(char* buffer){
 		//do something with buffer
 		i++;
 	}
+	if(i == 0 && ch == '\n'){
+		//the whole line is a newline so line should increment
+		line++;
+	}
 	buffer[i] = '\n';
 	return 0;
 }
@@ -352,6 +288,7 @@ int whitespace(char* buffer){
 		//Look for something other than whitespace
 		if(buffer[i] == '\n'){
 			clear(buffer);
+			line++;
 			int status = readline(buffer);
 			if(status == -1){
 				printf("End of file.\n");
@@ -378,8 +315,6 @@ int whitespace(char* buffer){
 				z++;
 			}
 			buffer = new_buffer;
-			//printf("\n%s\n", buffer);
-			//Buffer updated, now call identifier
 			identifier(buffer);
 			return 1;
 
@@ -397,17 +332,9 @@ int main(){
 	int i = 0;
 	int j = 0;
 	int status = 0;
-	//status = readline(buffer);
-//	if(status == -1){
-//		printf("End of file.\n");
-//	}else{
 	while(readline(buffer) != -1){
-//		whitespace(buffer);
-		identifier(buffer);
-		//long_real(buffer);
+		whitespace(buffer);
 		clear(buffer);
 
-		//relop(buffer);
 	}
-//	}
 }
