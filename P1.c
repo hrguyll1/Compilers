@@ -8,22 +8,28 @@
 /* Token Types */
 
 #define IDENTIFIER 	1
-#define INTEGER 	2
+#define INT	 	2
 #define REAL		3
 #define LONG_REAL	4
 #define RELOP		5
 #define ADDOP		6
 #define MULOP		7
-#define	PERIOD		8
-#define PAREN_OPEN	9
-#define PAREN_CLOSE	10
+#define	DOT		8
+#define OPEN_PAREN	9
+#define CLOSE_PAREN	10
 #define	COLON		11
-#define BRACKET_OPEN	12
-#define BRACKET_CLOSE	13
+#define OPEN_BRACKET	12
+#define CLOSE_BRACKET	13
 #define ASSIGNOP	14
 #define DOUBLE_PERIOD	15
 #define LEXERROR	99
 #define RW_SIZE		23
+#define OPEN_S_BRACKET	24
+#define CLOSE_S_BRACKET 25
+#define COMMENT_OPEN	26
+#define COMMENT_CLOSE	27
+#define COMMA		28
+#define	SEMICOLON	29
 
 int f = 0;
 int p = 0;
@@ -32,9 +38,6 @@ FILE *file = NULL;
 FILE *outfile = NULL;
 char reserved_words[RW_SIZE][SIZE];
 
-/*
-	This clears the buffer.
-*/
 int get_reserved_words(){
 	/*
 		Get reserved words and put them into an array.
@@ -58,6 +61,74 @@ int get_reserved_words(){
 
 	}
 	fclose(rw_file);
+}
+int catch_all(char* buffer){
+	int j = 0;
+	if(buffer[j] == ';'){
+		shift(buffer, j + 1, "SEMICOLON", SEMICOLON);
+		whitespace(buffer);
+
+	}else if(buffer[j] == '+'){
+		shift(buffer, j + 1, "ADDOP", ADDOP);
+		whitespace(buffer);
+	}else if(buffer[j] == '-'){
+		shift(buffer, j + 1, "ADDOP", ADDOP);
+		whitespace(buffer);
+	}else if(buffer[j] == ':' && buffer[j + 1] == '='){
+		shift(buffer, j + 2, "ASSIGNOP", ASSIGNOP);
+		whitespace(buffer);
+	}else if(buffer[j] == ','){
+		shift(buffer, j + 1, "COMMA", COMMA);
+		whitespace(buffer);
+
+	}else if(buffer[j] == '.'){
+		shift(buffer, j + 1, "DOT", DOT);
+		whitespace(buffer);
+
+	}else if(buffer[j] == ':'){
+		shift(buffer, j + 1, "COLON", COLON);
+		whitespace(buffer);
+
+	}else if(buffer[j] == '['){
+		shift(buffer, j + 1, "OPEN_BRACKET", OPEN_BRACKET);
+		whitespace(buffer);
+
+	}else if(buffer[j] == ']'){
+		shift(buffer, j + 1, "CLOSE_BRACKET", CLOSE_BRACKET);
+		whitespace(buffer);
+
+
+	}else if(buffer[j] == '{'){
+		shift(buffer, j + 1, "OPEN_S_BRACKET", OPEN_S_BRACKET);
+		whitespace(buffer);
+
+	}else if(buffer[j] == '}'){
+		shift(buffer, j + 1, "CLOSE_S_BRACKET", CLOSE_S_BRACKET);
+		whitespace(buffer);
+
+	}else if(buffer[j] == '(' && buffer[j + 1] == '*'){
+		shift(buffer, j + 1, "COMMENT_OPEN", COMMENT_OPEN);
+		whitespace(buffer);
+	}else if(buffer[j] == '*' && buffer[j + 1] == ')'){
+		shift(buffer, j + 2, "COMMENT_CLOSE", COMMENT_CLOSE);
+		whitespace(buffer);
+	}else if(buffer[j] == '*'){
+		shift(buffer, j + 1, "MULOP", MULOP);
+		whitespace(buffer);
+	}else if(buffer[j] == '('){
+		shift(buffer, j + 1, "OPEN_PAREN", OPEN_PAREN);
+		whitespace(buffer);
+
+	}else if(buffer[j] == ')'){
+		shift(buffer, j + 1, "CLOSE_PAREN", CLOSE_PAREN);
+		whitespace(buffer);
+
+	}else{
+		//Symbol unrecognized LEXERROR
+		shift(buffer, j + 1, "LEXERROR UNRECOGNIZED SYMBOL.", LEXERROR);
+		whitespace(buffer);
+	}
+
 }
 int clear(char* buffer){
 	int j = 0;
@@ -97,7 +168,10 @@ int long_real(char* buffer){
 		/*
 			If it starts with a 0 it is an error condition.
 		*/
-		if(buffer[0] - '0' == 0){
+		if(buffer[0] - '0' == 0 && !isdigit(buffer[1])){
+			shift(buffer, 1, "INT", INT);
+			whitespace(buffer);
+		}else if(buffer[0] - '0' == 0){
 			int j = 1;
 			//printf("Error in integer format. Cannot start with 0.\n");
 			//need to get the entire integer here.
@@ -119,7 +193,8 @@ int long_real(char* buffer){
 						Need to remove the broken number
 
 					*/
-					shift(buffer, j, "LEXERROR", LEXERROR);
+					shift(buffer, j + 1, "LEXERROR", LEXERROR);
+					//printf("New Buffer = %s\n", buffer);
 					whitespace(buffer);
 				}else{
 					while(isdigit(buffer[j])){
@@ -186,7 +261,7 @@ int long_real(char* buffer){
 
 				}
 			}else{
-				shift(buffer, j, "REAL", REAL);
+				shift(buffer, j, "INT", INT);
 				whitespace(buffer);
 			}
 		}
@@ -263,8 +338,7 @@ int relop(char* buffer){
 	}else{
 		//printf("Not a relop\n");
 		//Go to next machine
-		//Catchall
-		//TO DO
+		catch_all(buffer);
 	}
 
 
