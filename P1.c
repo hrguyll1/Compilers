@@ -24,6 +24,7 @@
 #define DOUBLE_PERIOD	15
 #define LEXERROR	99
 #define RW_SIZE		23
+
 int f = 0;
 int p = 0;
 int line = 1;
@@ -64,6 +65,30 @@ int clear(char* buffer){
 		buffer[j] = '\0';
 	}
 }
+int shift(char* buffer, int j, char* token_type, int attribute){
+	int k = 0;
+	char id[j + 1];
+	char new_buffer[SIZE];
+	for(k = 0; k < j; k++){
+		//save identifier into a temporary buffer called id
+		id[k] = buffer[k];
+	}
+	//null terminate the new buffer
+	id[k] = '\0';
+	//Shift the buffer to the left and remove the token that was just recognized
+	//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
+	int z = 0;
+	for(k = j; k < 72; k++){
+		new_buffer[z] = buffer[k];
+		z++;
+	}
+	for(z = 0; z < 72; z++){
+		buffer[z] = new_buffer[z];
+	}
+
+	printf("(id = %s, %s, %d)\n", id, token_type, attribute);
+	return 1;
+}
 /*
 	This should identify all acceptable numbers.
 */
@@ -73,7 +98,14 @@ int long_real(char* buffer){
 			If it starts with a 0 it is an error condition.
 		*/
 		if(buffer[0] - '0' == 0){
-			printf("Error in integer format. Cannot start with 0.\n");
+			int j = 1;
+			//printf("Error in integer format. Cannot start with 0.\n");
+			//need to get the entire integer here.
+			while(isdigit(buffer[j])){
+				j++;
+			}
+			shift(buffer, j, "LEXERROR", LEXERROR);
+			whitespace(buffer);
 		}else{
 			int j = 1;
 			while(isdigit(buffer[j])){
@@ -85,8 +117,9 @@ int long_real(char* buffer){
 				if(!isdigit(buffer[j])){
 					/*
 						Need to remove the broken number
-****
+
 					*/
+/*
 					int k = 0;
 					char id[j + 1];
 					char new_buffer[SIZE];
@@ -109,7 +142,9 @@ int long_real(char* buffer){
 						buffer[z] = new_buffer[z];
 					}
 
-					printf("(LEXERR, %s, Error in format of float.\n", id);
+					printf("(LEXERR, %s, Error in format of float.)\n", id);
+*/
+					shift(buffer, j, "LEXERROR", LEXERROR);
 					whitespace(buffer);
 				}else{
 					while(isdigit(buffer[j])){
@@ -124,41 +159,32 @@ int long_real(char* buffer){
 							while(isdigit(buffer[j])){
 								j++;
 							}
-							//TO DO: Retract
-							//Save value of int
 							int k = 0;
-							printf("Found Long Real: ");
-							for(k = 0; k < j; k++){
-								printf("%c", buffer[k]);
-							}
-							printf("\n");
+							//printf("Found Long Real: ");
+							//Shift buffer and print out the long real
+							shift(buffer, j, "LONG_REAL", LONG_REAL);
+							whitespace(buffer);
+
 						}else if(isdigit(buffer[j])){
 							//Assume it is a plus:
 							j++;
 							while(isdigit(buffer[j])){
 								j++;
 							}
-							//TO DO: Retract
-							//Save value of int
 							int k = 0;
-							printf("Found Long Real: ");
-							for(k = 0; k < j; k++){
-								printf("%c", buffer[k]);
-							}
-							printf("\n");
+							//printf("Found Long Real: ");
+							shift(buffer, j, "LONG_REAL", LONG_REAL);
+							whitespace(buffer);
 
 						}else{
-							printf("Error in formatting of long real.\n");
+							//printf("Error in formatting of long real. ");
+							shift(buffer, j + 1, "LEXERROR", LEXERROR);
+							whitespace(buffer);
 						}
 					}else{
-						//found a floating point number:
-						printf("Real number = ");
-						int k = 0;
-						for(k = 0; k < j; k++){
-							printf("%c",buffer[k]);
-						}
-						printf("\n");
-
+						//found a floating point real
+						shift(buffer, j, "REAL", REAL);
+						whitespace(buffer);
 					}
 				}
 			}else if(buffer[j] == 'E'){
@@ -170,39 +196,27 @@ int long_real(char* buffer){
 					}
 					int k = 0;
 					printf("Found Long Real: ");
-					for(k = 0; k < j; k++){
-						printf("%c", buffer[k]);
-					}
-					printf("\n");
+					shift(buffer, j, "LONG_REAL", LONG_REAL);
+					whitespace(buffer);
+
 				}else if(isdigit(buffer[j])){
 					//Assume it is a plus:
 					j++;
 					while(isdigit(buffer[j])){
 						j++;
 					}
-					//TO DO: Retract
-					//Save value of int
-					int k = 0;
 					printf("Found Long Real: ");
-					for(k = 0; k < j; k++){
-						printf("%c", buffer[k]);
-					}
-					printf("\n");
+					shift(buffer, j, "LONG_REAL", LONG_REAL);
+					whitespace(buffer);
+
 				}
-			//This should go in first if statement because it is never reached right now.
 			}else{
 				printf("Found Real\n");
-				int k = 0;
-				for(k = 0; k < j; k++){
-					printf("%c", buffer[k]);
-				}
-				printf("\n");
+				shift(buffer, j, "REAL", REAL);
+				whitespace(buffer);
 			}
-				//TO DO: Retract one character and remove the number from the buffer
 		}
 	}
-			//Need other state
-			//Need state for if it's digitE+/-
 	return 1;
 }
 /*
