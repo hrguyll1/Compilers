@@ -192,7 +192,7 @@ int long_real(char* buffer){
 		}
 	}else{
 		//The thing is not a number so call the next machine:
-		//Addops
+		relop(buffer);
 	}
 	return 1;
 }
@@ -234,25 +234,37 @@ int relop(char* buffer){
 	int j = 0;
 	if(buffer[j] == '>' && buffer[j + 1] == '='){
 		//Found (relop, GE)
-		printf("Found (relop GE)\n");
 		//Now remove it
+		shift(buffer, j + 2, "RELOP", RELOP);
+		whitespace(buffer);
 	}else if(buffer[j] == '>'){
-
-		printf("Found (relop, GT)\n");
+		//printf("Found (relop, GT)\n");
+		shift(buffer, j + 1, "RELOP", RELOP);
+		whitespace(buffer);
 	}else if(buffer[j] == '='){
-
-		printf("Found (relop, EQ)\n");
+		//printf("Found (relop, EQ)\n");
+		shift(buffer, j + 1, "RELOP", RELOP);
+		whitespace(buffer);
 	}else if(buffer[j] == '<' && buffer[j + 1] == '='){
+		//printf("Found (relop, LE)\n");
+		shift(buffer, j + 2, "RELOP", RELOP);
+		whitespace(buffer);
 
-		printf("Found (relop, LE)\n");
 	}else if(buffer[j] == '<' && buffer[j + 1] == '>'){
+		//printf("Found (relop, NE)\n");
+		shift(buffer, j + 2, "RELOP", RELOP);
+		whitespace(buffer);
 
-		printf("Found (relop, NE)\n");
 	}else if(buffer[j] == '<'){
+		//printf("Found (relop, LT)\n");
+		shift(buffer, j + 1, "RELOP", RELOP);
+		whitespace(buffer);
 
-		printf("Found (relop, LT)\n");
 	}else{
-		printf("Not a relop\n");
+		//printf("Not a relop\n");
+		//Go to next machine
+		//Catchall
+		//TO DO
 	}
 
 
