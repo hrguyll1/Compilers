@@ -65,7 +65,7 @@ int clear(char* buffer){
 	}
 }
 /*
-	This should identify all legal numbers.
+	This should identify all acceptable numbers.
 */
 int long_real(char* buffer){
 	if(isdigit(buffer[0])){
@@ -83,7 +83,34 @@ int long_real(char* buffer){
 				//must include digit
 				j++;
 				if(!isdigit(buffer[j])){
-					printf("Error in format of float.\n");
+					/*
+						Need to remove the broken number
+****
+					*/
+					int k = 0;
+					char id[j + 1];
+					char new_buffer[SIZE];
+
+					for(k = 0; k < j; k++){
+						//save identifier into a temporary buffer called id
+						id[k] = buffer[k];
+					}
+					//null terminate the new buffer
+					id[k] = '\0';
+
+					//Shift the buffer to the left and remove the token that was just recognized
+					//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
+					int z = 0;
+					for(k = j; k < 72; k++){
+						new_buffer[z] = buffer[k];
+						z++;
+					}
+					for(z = 0; z < 72; z++){
+						buffer[z] = new_buffer[z];
+					}
+
+					printf("(LEXERR, %s, Error in format of float.\n", id);
+					whitespace(buffer);
 				}else{
 					while(isdigit(buffer[j])){
 						//keep incrementing
@@ -220,6 +247,7 @@ int identifier(char* buffer){
 				buffer[z] = new_buffer[z];
 			}
 			//What if we are at the end of a line?
+			whitespace(buffer);
 
 		}else{
 			//identifier too long
@@ -246,8 +274,14 @@ int identifier(char* buffer){
 				buffer[z] = new_buffer[z];
 			}
 
-
+			//Send into whitespace machine again.
+			whitespace(buffer);
 		}
+
+	}else{
+		//else the thing was not an identifier, so send it to the number checker
+		long_real(buffer);
+
 	}
 }
 int relop(char* buffer){
@@ -330,8 +364,9 @@ int whitespace(char* buffer){
 				z++;
 			}
 			buffer = new_buffer;
-			printf("\n%s\n", buffer);
-
+			//printf("\n%s\n", buffer);
+			//Buffer updated, now call identifier
+			identifier(buffer);
 			return 1;
 
 		}
@@ -355,9 +390,9 @@ int main(){
 	while(readline(buffer) != -1){
 //		whitespace(buffer);
 		identifier(buffer);
+		//long_real(buffer);
 		clear(buffer);
 
-		//long_real(buffer);
 		//relop(buffer);
 	}
 //	}
