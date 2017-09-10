@@ -23,13 +23,19 @@
 #define ASSIGNOP	14
 #define DOUBLE_PERIOD	15
 #define LEXERROR	99
-#define RW_SIZE		23
+#define RW_SIZE		22
 #define OPEN_S_BRACKET	24
 #define CLOSE_S_BRACKET 25
 #define COMMENT_OPEN	26
 #define COMMENT_CLOSE	27
 #define COMMA		28
 #define	SEMICOLON	29
+#define STAR		30
+#define SLASH		31
+#define DIV		32
+#define PLUS		36
+#define MINUS		37
+#define DOUBLE_DOT	38
 
 int f = 0;
 int p = 0;
@@ -51,15 +57,33 @@ int get_reserved_words(){
 		printf("Could not read reserved words file.\n");
 	}
 	int i = 0;
+	char temp_buffer[SIZE];
+	while(1){
+		if(fgets(temp_buffer, SIZE, rw_file) == NULL){
+			break;
+		}else if(i >= RW_SIZE){
+			break;
+		}else{
+			int k = 0;
+			while(temp_buffer[k] != '\n' && temp_buffer[k] != '\0'){
+				reserved_words[i][k] = temp_buffer[k];
+				k++;
+			}
+			i++;
+		}
+	}
+/*
 	while(1){
 		if(fgets(reserved_words[i], SIZE, rw_file) == NULL){
 			break;
 		}else if(i >= RW_SIZE){
 			break;
 		}
+		printf("%d\n", sizeof(reserved_words[i]));
+		reserved_words[i][sizeof(reserved_words[i])] = '\0';
 		i++;
-
 	}
+*/
 	fclose(rw_file);
 }
 int catch_all(char* buffer){
@@ -67,12 +91,11 @@ int catch_all(char* buffer){
 	if(buffer[j] == ';'){
 		shift(buffer, j + 1, "SEMICOLON", SEMICOLON);
 		whitespace(buffer);
-
 	}else if(buffer[j] == '+'){
-		shift(buffer, j + 1, "ADDOP", ADDOP);
+		shift(buffer, j + 1, "ADDOP", PLUS);
 		whitespace(buffer);
 	}else if(buffer[j] == '-'){
-		shift(buffer, j + 1, "ADDOP", ADDOP);
+		shift(buffer, j + 1, "ADDOP", MINUS);
 		whitespace(buffer);
 	}else if(buffer[j] == ':' && buffer[j + 1] == '='){
 		shift(buffer, j + 2, "ASSIGNOP", ASSIGNOP);
@@ -80,32 +103,24 @@ int catch_all(char* buffer){
 	}else if(buffer[j] == ','){
 		shift(buffer, j + 1, "COMMA", COMMA);
 		whitespace(buffer);
-
 	}else if(buffer[j] == '.'){
 		shift(buffer, j + 1, "DOT", DOT);
 		whitespace(buffer);
-
 	}else if(buffer[j] == ':'){
 		shift(buffer, j + 1, "COLON", COLON);
 		whitespace(buffer);
-
 	}else if(buffer[j] == '['){
 		shift(buffer, j + 1, "OPEN_BRACKET", OPEN_BRACKET);
 		whitespace(buffer);
-
 	}else if(buffer[j] == ']'){
 		shift(buffer, j + 1, "CLOSE_BRACKET", CLOSE_BRACKET);
 		whitespace(buffer);
-
-
 	}else if(buffer[j] == '{'){
 		shift(buffer, j + 1, "OPEN_S_BRACKET", OPEN_S_BRACKET);
 		whitespace(buffer);
-
 	}else if(buffer[j] == '}'){
 		shift(buffer, j + 1, "CLOSE_S_BRACKET", CLOSE_S_BRACKET);
 		whitespace(buffer);
-
 	}else if(buffer[j] == '(' && buffer[j + 1] == '*'){
 		shift(buffer, j + 1, "COMMENT_OPEN", COMMENT_OPEN);
 		whitespace(buffer);
@@ -113,22 +128,19 @@ int catch_all(char* buffer){
 		shift(buffer, j + 2, "COMMENT_CLOSE", COMMENT_CLOSE);
 		whitespace(buffer);
 	}else if(buffer[j] == '*'){
-		shift(buffer, j + 1, "MULOP", MULOP);
+		shift(buffer, j + 1, "MULOP", STAR);
 		whitespace(buffer);
 	}else if(buffer[j] == '('){
 		shift(buffer, j + 1, "OPEN_PAREN", OPEN_PAREN);
 		whitespace(buffer);
-
 	}else if(buffer[j] == ')'){
 		shift(buffer, j + 1, "CLOSE_PAREN", CLOSE_PAREN);
 		whitespace(buffer);
-
 	}else{
 		//Symbol unrecognized LEXERROR
 		shift(buffer, j + 1, "LEXERROR UNRECOGNIZED SYMBOL.", LEXERROR);
 		whitespace(buffer);
 	}
-
 }
 int clear(char* buffer){
 	int j = 0;
@@ -156,7 +168,17 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 	for(z = 0; z < 72; z++){
 		buffer[z] = new_buffer[z];
 	}
-
+	if(attribute == IDENTIFIER){
+		//check to see if it is a reserved word
+		k = 0;
+		while(k < RW_SIZE){
+			if(strstr(id, reserved_words[k])){
+				printf("Found a reserved word: %s\n", reserved_words[k]);
+				break;
+			}
+			k++;
+		}
+	}
 	printf("(line %d, id: %s, %s, %d)\n", line, id, token_type, attribute);
 	return 1;
 }
@@ -414,6 +436,8 @@ int main(){
 	file = fopen("sourcefile.txt", "r");
 	outfile = fopen("outfile.txt", "w");
 	get_reserved_words();
+
+
 	char buffer[SIZE];
 	int i = 0;
 	int j = 0;
@@ -423,4 +447,5 @@ int main(){
 		clear(buffer);
 
 	}
+
 }
