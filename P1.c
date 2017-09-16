@@ -210,6 +210,7 @@ int clear(char* buffer){
 		buffer[j] = '\0';
 	}
 }
+//struct token shfit(char* buffer, int j, char* token_type, int attribute){
 int shift(char* buffer, int j, char* token_type, int attribute){
 	int k = 0;
 	char id[j + 1];
@@ -242,7 +243,17 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 			k++;
 		}
 	}
-	printf("(%d, %s, %s, %d)\n", line, id, token_type, attribute);
+
+	struct token new_token;
+	new_token.lexeme = (char*)malloc((j+1) * sizeof(char));
+	new_token.lexeme = id;
+	new_token.token = (char*)malloc(sizeof(token_type) * sizeof(char));
+	new_token.token = token_type;
+	//new_token.attribute = (int)malloc(sizeof(attribute) * sizeof());
+	new_token.attribute = attribute;
+	printf("(%d, %s, %s, %d)\n", line, new_token.lexeme, new_token.token, new_token.attribute);
+//	printf("(%d, |%s|, %s, %d)\n", line, id, token_type, attribute);
+
 	return 1;
 }
 /*
