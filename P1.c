@@ -328,9 +328,14 @@ int long_real(char* buffer){
 							whitespace(buffer);
 						}
 					}else{
-						//found a floating point real
-						shift(buffer, j, "REAL", REAL);
-						whitespace(buffer);
+						if(buffer[j - 1] == '0'){
+							printf("LEXERROR, ENDING ZEROS\n");
+							shift(buffer, j, "LEXERROR", LEXERROR);
+						}else{
+							//found a floating point real
+							shift(buffer, j, "REAL", REAL);
+							whitespace(buffer);
+						}
 					}
 				}
 			}else if(buffer[j] == 'E'){
