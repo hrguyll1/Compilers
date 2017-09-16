@@ -40,51 +40,107 @@
 int f = 0;
 int p = 0;
 int line = 1;
+
 FILE *file = NULL;
 FILE *outfile = NULL;
-char reserved_words[RW_SIZE][SIZE];
+
+typedef struct token{
+
+        char* lexeme;
+        char* token;
+        int attribute;
+
+} token_t;
+
+struct token reserved_words[20];
 
 int get_reserved_words(){
-	/*
-		Get reserved words and put them into an array.
-	*/
+        char temp_buffer[72];
+        char ch;
+        /*
+                Get reserved words and put them into an array.
+        */
 
-	FILE *rw_file;
-	char l[SIZE];
+        FILE *rw_file;
 
-	rw_file = fopen("reservedwords.txt", "r");
-	if(rw_file == NULL){
-		printf("Could not read reserved words file.\n");
-	}
-	int i = 0;
-	char temp_buffer[SIZE];
-	while(1){
-		if(fgets(temp_buffer, SIZE, rw_file) == NULL){
-			break;
-		}else if(i >= RW_SIZE){
-			break;
-		}else{
-			int k = 0;
-			while(temp_buffer[k] != '\n' && temp_buffer[k] != '\0'){
-				reserved_words[i][k] = temp_buffer[k];
-				k++;
-			}
-			i++;
-		}
-	}
-/*
-	while(1){
-		if(fgets(reserved_words[i], SIZE, rw_file) == NULL){
-			break;
-		}else if(i >= RW_SIZE){
-			break;
-		}
-		printf("%d\n", sizeof(reserved_words[i]));
-		reserved_words[i][sizeof(reserved_words[i])] = '\0';
-		i++;
-	}
-*/
-	fclose(rw_file);
+        rw_file = fopen("reservedwords.txt", "r");
+        if(rw_file == NULL){
+                printf("Could not read reserved words file.\n");
+                return -1;
+        }
+        int i = 0;
+        while(i < 20){
+
+                int j = 0;
+                int k = 0;
+                //grab everything until the line is over
+                while((ch = fgetc(rw_file)) != '\n'){
+                        temp_buffer[j] = ch;
+                        j++;
+                }
+                temp_buffer[j] = '\0';
+                //parse everything in the line
+
+                //get exact size of lexeme
+                j = 0;
+                while(temp_buffer[j] != ' '){
+                        j++;
+                }
+                reserved_words[i].lexeme = (char*)malloc(j * sizeof(char));
+                j = 0;
+                while(temp_buffer[j] != ' '){
+                        reserved_words[i].lexeme[j] = temp_buffer[j];
+                        j++;
+                }
+                reserved_words[i].lexeme[j] = '\0';
+
+                //get exact size of token
+                j = j + 1;
+                k = 0;
+                int temp = j;
+                while(temp_buffer[j] != ' '){
+                        k++;
+                        j++;
+                }
+                reserved_words[i].token = (char*)malloc(k * sizeof(char));
+                k = 0;
+                j = temp;
+                while(temp_buffer[j] != ' '){
+                        reserved_words[i].token[k] = temp_buffer[j];
+                        j++;
+                        k++;
+                }
+                reserved_words[i].token[j] = '\0';
+
+                //get exact size of attribute
+                k = 0;
+                j = j + 1;
+                temp = j;
+                while(temp_buffer[j] != '\0'){
+                        k++;
+                        j++;
+                }
+                char* attribute = (char*)malloc(k * sizeof(char));
+                k = 0;
+                j = temp;
+                while(temp_buffer[j] != '\0'){
+                        attribute[k] = temp_buffer[j];
+                        j++;
+                        k++;
+                }
+                attribute[j] = '\0';
+                reserved_words[i].attribute = atoi(attribute);
+
+
+            i++;
+        }
+
+        fclose(rw_file);
+}
+
+int get_next_token(){
+
+	return 0;
 }
 int catch_all(char* buffer){
 	int j = 0;
@@ -130,10 +186,16 @@ int catch_all(char* buffer){
 	}else if(buffer[j] == '*'){
 		shift(buffer, j + 1, "MULOP", STAR);
 		whitespace(buffer);
+	}else if(buffer[j] == '/'){
+
+		shift(buffer, j + 1, "MULOP", SLASH );
+		whitespace(buffer);
 	}else if(buffer[j] == '('){
+
 		shift(buffer, j + 1, "OPEN_PAREN", OPEN_PAREN);
 		whitespace(buffer);
 	}else if(buffer[j] == ')'){
+
 		shift(buffer, j + 1, "CLOSE_PAREN", CLOSE_PAREN);
 		whitespace(buffer);
 	}else{
@@ -152,6 +214,7 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 	int k = 0;
 	char id[j + 1];
 	char new_buffer[SIZE];
+
 	for(k = 0; k < j; k++){
 		//save identifier into a temporary buffer called id
 		id[k] = buffer[k];
@@ -172,14 +235,14 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 		//check to see if it is a reserved word
 		k = 0;
 		while(k < RW_SIZE){
-			if(strstr(id, reserved_words[k])){
-				printf("Found a reserved word: %s\n", reserved_words[k]);
-				break;
+			if(strstr(reserved_words[k].lexeme, id)){
+				printf("(%i, %s, %s, %i)\n", line, reserved_words[k].lexeme, reserved_words[k].token, reserved_words[k].attribute);
+				return 1;
 			}
 			k++;
 		}
 	}
-	printf("(line %d, id: %s, %s, %d)\n", line, id, token_type, attribute);
+	printf("(%d, %s, %s, %d)\n", line, id, token_type, attribute);
 	return 1;
 }
 /*
@@ -385,7 +448,7 @@ int readline(char* buffer){
 	}
 	if(i == 0 && ch == '\n'){
 		//the whole line is a newline so line should increment
-		line++;
+		//line++;
 	}
 	buffer[i] = '\n';
 	return 0;
