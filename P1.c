@@ -298,6 +298,9 @@ int long_real(char* buffer){
 						j++;
 					}
 					//found long
+					/*
+						Something like: 1.23E+13
+					*/
 					if(buffer[j] == 'E'){
 						j++;
 						if(buffer[j] == '+' || buffer[j] == '-'){
@@ -306,11 +309,54 @@ int long_real(char* buffer){
 								j++;
 							}
 							int k = 0;
-							//printf("Found Long Real: ");
-							//Shift buffer and print out the long real
-							shift(buffer, j, "LONG_REAL", LONG_REAL);
-							whitespace(buffer);
 
+							//Shift buffer and print out the long real
+
+							//First do checks:
+							int temp = j;
+							j = 0;
+							while(isdigit(buffer[j])){
+								//just keep count of j
+								j++;
+							}
+							if(j > 5){
+								j = temp;
+								shift(buffer, j, "LEXERROR. First half of float too long.", LEXERROR);
+								whitespace(buffer);
+								return 1;
+							}else{
+								//check the second part before the E and make sure it's not too large
+								k = 0;
+								j = j + 1;
+								while(isdigit(buffer[j])){
+									//just keep count of j
+									j++;
+									k++;
+								}
+								if(k > 5){
+									j = temp;
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									whitespace(buffer);
+									return 1;
+								}
+								//Now check if the part after the E is too long.
+								k = 0;
+								//increment by 2 because this is of the type 1.23E+21
+								j = j + 2;
+								while(j < temp){
+									j++;
+									k++;
+								}
+								if(k > 2){
+									j = temp;
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									whitespace(buffer);
+									return 1;
+								}
+								shift(buffer, j, "LONG_REAL", LONG_REAL);
+								whitespace(buffer);
+								return 1;
+							}
 						}else if(isdigit(buffer[j])){
 							//Assume it is a plus:
 							j++;
@@ -318,9 +364,54 @@ int long_real(char* buffer){
 								j++;
 							}
 							int k = 0;
-							//printf("Found Long Real: ");
-							shift(buffer, j, "LONG_REAL", LONG_REAL);
-							whitespace(buffer);
+
+							//First check
+							int temp = j;
+							j = 0;
+							while(isdigit(buffer[j])){
+								//just keep count of j
+								j++;
+							}
+							if(j > 5){
+								j = temp;
+								shift(buffer, j, "LEXERROR. First half of float too long.", LEXERROR);
+								whitespace(buffer);
+								return 1;
+							}else{
+								//check the second part before the E and make sure it's not too large
+								k = 0;
+								j = j + 1;
+								while(isdigit(buffer[j])){
+									//just keep count of j
+									j++;
+									k++;
+								}
+								if(k > 5){
+									j = temp;
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									whitespace(buffer);
+									return 1;
+								}
+								//Now check if the part after the E is too long.
+								k = 0;
+								//increment by 2 because this is of the type 1.23E+21
+								j = j + 1;
+								while(j < temp){
+									j++;
+									k++;
+								}
+								if(k > 2){
+									j = temp;
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									whitespace(buffer);
+									return 1;
+								}else{
+									j = temp;
+					 				shift(buffer, j, "LONG_REAL", LONG_REAL);
+									whitespace(buffer);
+							 		return 1;
+								}
+							}
 
 						}else{
 							//printf("Error in formatting of long real. ");
@@ -329,12 +420,40 @@ int long_real(char* buffer){
 						}
 					}else{
 						if(buffer[j - 1] == '0'){
-							printf("LEXERROR, ENDING ZEROS\n");
 							shift(buffer, j, "LEXERROR", LEXERROR);
 						}else{
 							//found a floating point real
-							shift(buffer, j, "REAL", REAL);
-							whitespace(buffer);
+							//Check the size of it.
+							int temp = j;
+							j = 0;
+							while(isdigit(buffer[j])){
+								//just keep count of j
+								j++;
+							}
+							if(j > 5){
+								j = temp;
+								shift(buffer, j, "LEXERROR. First half of float too long.", LEXERROR);
+								whitespace(buffer);
+								return 1;
+							}else{
+								//check the last half and make sure it's not too large
+								int k = 0;
+								while(j < temp){
+									//just keep count of j
+									j++;
+									k++;
+								}
+								if(k > 5){
+									j = temp;
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									whitespace(buffer);
+									return 1;
+								}
+								//else, it's fine.
+								j = temp;
+								shift(buffer, j, "REAL", REAL);
+								whitespace(buffer);
+							}
 						}
 					}
 				}
