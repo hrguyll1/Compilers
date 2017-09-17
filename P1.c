@@ -252,7 +252,6 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 	//new_token.attribute = (int)malloc(sizeof(attribute) * sizeof());
 	new_token.attribute = attribute;
 	printf("(%d, %s, %s, %d)\n", line, new_token.lexeme, new_token.token, new_token.attribute);
-//	printf("(%d, |%s|, %s, %d)\n", line, id, token_type, attribute);
 
 	return 1;
 }
@@ -274,7 +273,31 @@ int long_real(char* buffer){
 			while(isdigit(buffer[j])){
 				j++;
 			}
-			shift(buffer, j, "LEXERROR", LEXERROR);
+			if(buffer[j] == '.'){
+				//Still keep Shifting
+				j++;
+				while(isdigit(buffer[j])){
+					j++;
+				}
+				if(buffer[j] == 'E'){
+					j++;
+					if(buffer[j] == '+' || buffer[j] == '-'){
+						j++;
+					}
+					while(isdigit(buffer[j])){
+						j++;
+					}
+				}
+			}else if(buffer[j] == 'E'){
+				//Still keep shifting
+					j++;
+				if(isdigit(buffer[j]) || buffer[j] == '+' || buffer[j] == '-'){
+					while(isdigit(buffer[j])){
+						j++;
+					}
+				}
+			}
+			shift(buffer, j, "LEADING ZERO", LEXERROR);
 			whitespace(buffer);
 		}else{
 			int j = 1;
@@ -457,6 +480,9 @@ int long_real(char* buffer){
 						}
 					}
 				}
+			/*
+				Something like 10E+13
+			*/
 			}else if(buffer[j] == 'E'){
 				j++;
 				if(buffer[j] == '+' || buffer[j] == '-'){
@@ -465,24 +491,96 @@ int long_real(char* buffer){
 						j++;
 					}
 					int k = 0;
-					printf("Found Long Real: ");
-					shift(buffer, j, "LONG_REAL", LONG_REAL);
-					whitespace(buffer);
 
+					//Check the size of it.
+					int temp = j;
+					j = 0;
+					while(isdigit(buffer[j])){
+						//just keep count of j
+						j++;
+					}
+					if(j > 5){
+						j = temp;
+						shift(buffer, j, "LEXERROR. First part too long.", LEXERROR);
+						whitespace(buffer);
+						return 1;
+					}else{
+						//check the last half and make sure it's not too large
+						int k = 0;
+						j++; // skip over the E portion
+						j++; //skip over the + / - portion
+						while(j < temp){
+							//just keep count of j
+							j++;
+							k++;
+						}
+						if(k > 2){
+							j = temp;
+							shift(buffer, j, "LEXERROR. Part after E too long.", LEXERROR);
+							whitespace(buffer);
+							return 1;
+						}
+						//else, it's fine.
+						j = temp;
+						shift(buffer, j, "LONG_REAL", LONG_REAL);
+						whitespace(buffer);
+					}
+				/*
+
+					Something like 123E21
+				*/
 				}else if(isdigit(buffer[j])){
 					//Assume it is a plus:
 					j++;
 					while(isdigit(buffer[j])){
 						j++;
 					}
-					printf("Found Long Real: ");
-					shift(buffer, j, "LONG_REAL", LONG_REAL);
-					whitespace(buffer);
+
+					//Check the size of it.
+					int temp = j;
+					j = 0;
+					while(isdigit(buffer[j])){
+						//just keep count of j
+						j++;
+					}
+					if(j > 5){
+						j = temp;
+						shift(buffer, j, "LEXERROR. First part too long.", LEXERROR);
+						whitespace(buffer);
+						return 1;
+					}else{
+						//check the last half and make sure it's not too large
+						int k = 0;
+						j++; // skip E portion
+						while(j < temp){
+							//just keep count of j
+							j++;
+							k++;
+						}
+						printf("%i, ", k);
+						if(k > 2){
+							j = temp;
+							shift(buffer, j, "LEXERROR. Part after E too long.", LEXERROR);
+							whitespace(buffer);
+							return 1;
+						}
+						//else, it's fine.
+
+						shift(buffer, j, "LONG_REAL", LONG_REAL);
+						whitespace(buffer);
+					}
 
 				}
 			}else{
+				//integer. check length
+				if (j >= 10){
+					shift(buffer, j, "LEXERROR, TOO LONG", INT);
+					whitespace(buffer);
+					return 1;
+				}
 				shift(buffer, j, "INT", INT);
 				whitespace(buffer);
+				return 1;
 			}
 		}
 	}else{
