@@ -502,7 +502,7 @@ int long_real(char* buffer){
 						}
 					}else{
 						if(buffer[j - 1] == '0'){
-							shift(buffer, j, "LEXERROR", LEXERROR);
+							shift(buffer, j, "LEXERROR. Trailing zeros", LEXERROR);
 						}else{
 							//found a floating point real
 							//Check the size of it.
@@ -804,6 +804,10 @@ int readline(char* buffer){
 		//line++;
 	}
 	buffer[i] = '\n';
+	buffer[i + 1] = '\0';
+	if(ch != EOF){
+		fprintf(outfile,"%i    %s", line,buffer);
+	}
 	return 0;
 }
 int whitespace(char* buffer){
