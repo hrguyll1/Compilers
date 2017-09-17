@@ -4,6 +4,7 @@
 #include <ctype.h>
 #include "headers.h"
 #define SIZE 72
+#define getName(var) #var
 
 /* Token Types */
 
@@ -14,15 +15,18 @@
 #define RELOP		5
 #define ADDOP		6
 #define MULOP		7
+#define ASSIGNOP	14
+#define LEXERROR	99
+
+
 #define	DOT		8
+#define DOUBLE_DOT	38
 #define OPEN_PAREN	9
 #define CLOSE_PAREN	10
 #define	COLON		11
 #define OPEN_BRACKET	12
 #define CLOSE_BRACKET	13
-#define ASSIGNOP	14
 #define DOUBLE_PERIOD	15
-#define LEXERROR	99
 #define RW_SIZE		20
 #define OPEN_S_BRACKET	24
 #define CLOSE_S_BRACKET 25
@@ -35,7 +39,6 @@
 #define DIV		32
 #define PLUS		36
 #define MINUS		37
-#define DOUBLE_DOT	38
 
 int f = 0;
 int p = 0;
@@ -47,13 +50,25 @@ FILE *outfile = NULL;
 typedef struct token{
 
         char* lexeme;
+
+	int token_type;
         char* token;
+
         int attribute;
+	char* attribute_c;
+
+	int flag; //is set if the attribute is a character
+	char* c_attribute;
 
 } token_t;
 
 struct token reserved_words[20];
 
+void print_token(struct token t){
+	int width = 15;
+	printf("%*i %*s           %*s           %*i    \n", 20, line, 20, t.lexeme, 20, t.token, 20, t.attribute);
+
+}
 int get_reserved_words(){
         char temp_buffer[72];
         char ch;
@@ -145,62 +160,62 @@ int get_next_token(){
 int catch_all(char* buffer){
 	int j = 0;
 	if(buffer[j] == ';'){
-		shift(buffer, j + 1, "SEMICOLON", SEMICOLON);
+		shift(buffer, j + 1, "SEMICOLON", SEMICOLON, SEMICOLON);
 		whitespace(buffer);
 	}else if(buffer[j] == '+'){
-		shift(buffer, j + 1, "ADDOP", PLUS);
+		shift(buffer, j + 1, "ADDOP", PLUS, PLUS);
 		whitespace(buffer);
 	}else if(buffer[j] == '-'){
-		shift(buffer, j + 1, "ADDOP", MINUS);
+		shift(buffer, j + 1, "ADDOP", MINUS, MINUS);
 		whitespace(buffer);
 	}else if(buffer[j] == ':' && buffer[j + 1] == '='){
-		shift(buffer, j + 2, "ASSIGNOP", ASSIGNOP);
+		shift(buffer, j + 2, "ASSIGNOP", ASSIGNOP, ASSIGNOP);
 		whitespace(buffer);
 	}else if(buffer[j] == ','){
-		shift(buffer, j + 1, "COMMA", COMMA);
+		shift(buffer, j + 1, "COMMA", COMMA, COMMA);
 		whitespace(buffer);
 	}else if(buffer[j] == '.'){
-		shift(buffer, j + 1, "DOT", DOT);
+		shift(buffer, j + 1, "DOT", DOT, DOT);
 		whitespace(buffer);
 	}else if(buffer[j] == ':'){
-		shift(buffer, j + 1, "COLON", COLON);
+		shift(buffer, j + 1, "COLON", COLON, COLON);
 		whitespace(buffer);
 	}else if(buffer[j] == '['){
-		shift(buffer, j + 1, "OPEN_BRACKET", OPEN_BRACKET);
+		shift(buffer, j + 1, "OPEN_BRACKET", OPEN_BRACKET, OPEN_BRACKET);
 		whitespace(buffer);
 	}else if(buffer[j] == ']'){
-		shift(buffer, j + 1, "CLOSE_BRACKET", CLOSE_BRACKET);
+		shift(buffer, j + 1, "CLOSE_BRACKET", CLOSE_BRACKET, CLOSE_BRACKET);
 		whitespace(buffer);
 	}else if(buffer[j] == '{'){
-		shift(buffer, j + 1, "OPEN_S_BRACKET", OPEN_S_BRACKET);
+		shift(buffer, j + 1, "OPEN_S_BRACKET", OPEN_S_BRACKET, OPEN_S_BRACKET);
 		whitespace(buffer);
 	}else if(buffer[j] == '}'){
-		shift(buffer, j + 1, "CLOSE_S_BRACKET", CLOSE_S_BRACKET);
+		shift(buffer, j + 1, "CLOSE_S_BRACKET", CLOSE_S_BRACKET, CLOSE_S_BRACKET);
 		whitespace(buffer);
 	}else if(buffer[j] == '(' && buffer[j + 1] == '*'){
-		shift(buffer, j + 1, "COMMENT_OPEN", COMMENT_OPEN);
+		shift(buffer, j + 1, "COMMENT_OPEN", COMMENT_OPEN, COMMENT_OPEN);
 		whitespace(buffer);
 	}else if(buffer[j] == '*' && buffer[j + 1] == ')'){
-		shift(buffer, j + 2, "COMMENT_CLOSE", COMMENT_CLOSE);
+		shift(buffer, j + 2, "COMMENT_CLOSE", COMMENT_CLOSE, COMMENT_CLOSE);
 		whitespace(buffer);
 	}else if(buffer[j] == '*'){
-		shift(buffer, j + 1, "MULOP", STAR);
+		shift(buffer, j + 1, "MULOP", STAR, STAR);
 		whitespace(buffer);
 	}else if(buffer[j] == '/'){
 
-		shift(buffer, j + 1, "MULOP", SLASH );
+		shift(buffer, j + 1, "MULOP", SLASH, SLASH);
 		whitespace(buffer);
 	}else if(buffer[j] == '('){
 
-		shift(buffer, j + 1, "OPEN_PAREN", OPEN_PAREN);
+		shift(buffer, j + 1, "OPEN_PAREN", OPEN_PAREN, OPEN_PAREN);
 		whitespace(buffer);
 	}else if(buffer[j] == ')'){
 
-		shift(buffer, j + 1, "CLOSE_PAREN", CLOSE_PAREN);
+		shift(buffer, j + 1, "CLOSE_PAREN", CLOSE_PAREN, CLOSE_PAREN);
 		whitespace(buffer);
 	}else{
 		//Symbol unrecognized LEXERROR
-		shift(buffer, j + 1, "LEXERROR UNRECOGNIZED SYMBOL.", LEXERROR);
+		shift(buffer, j + 1, "LEXERROR UNRECOGNIZED SYMBOL.", LEXERROR, LEXERROR);
 		whitespace(buffer);
 	}
 }
@@ -211,7 +226,7 @@ int clear(char* buffer){
 	}
 }
 //struct token shfit(char* buffer, int j, char* token_type, int attribute){
-int shift(char* buffer, int j, char* token_type, int attribute){
+int shift(char* buffer, int j, char* token_type, int token_i, int attribute){
 	int k = 0;
 	char id[j + 1];
 	char new_buffer[SIZE];
@@ -222,6 +237,12 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 	}
 	//null terminate the new buffer
 	id[k] = '\0';
+/*
+	if(token_i == -1){
+		//int so we need to just give that a value of id
+	}
+	token_i = atoi(token_i);
+*/
 	//Shift the buffer to the left and remove the token that was just recognized
 	//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
 	int z = 0;
@@ -236,8 +257,10 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 		//check to see if it is a reserved word
 		k = 0;
 		while(k < RW_SIZE){
+			int space = 40;
 			if(strstr(reserved_words[k].lexeme, id)){
-				printf("(%i, %s, %s, %i)\n", line, reserved_words[k].lexeme, reserved_words[k].token, reserved_words[k].attribute);
+				//printf("(%i, %s, %s, %i)\n", line, reserved_words[k].lexeme, reserved_words[k].token, reserved_words[k].attribute);
+				print_token(reserved_words[k]);
 				return 1;
 			}
 			k++;
@@ -250,8 +273,8 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 	new_token.token = token_type;
 	//new_token.attribute = (int)malloc(sizeof(attribute) * sizeof());
 	new_token.attribute = attribute;
-	printf("(%d, %s, %s, %d)\n", line, new_token.lexeme, new_token.token, new_token.attribute);
-
+//	printf("(%d, %s, %s, %d)\n", line, new_token.lexeme, new_token.token, new_token.attribute);
+	print_token(new_token);
 	return 1;
 }
 /*
@@ -263,7 +286,7 @@ int long_real(char* buffer){
 			If it starts with a 0 it is an error condition.
 		*/
 		if(buffer[0] - '0' == 0 && !isdigit(buffer[1])){
-			shift(buffer, 1, "INT", INT);
+			shift(buffer, 1, "INT", INT, INT);
 			whitespace(buffer);
 		}else if(buffer[0] - '0' == 0){
 			int j = 1;
@@ -296,7 +319,7 @@ int long_real(char* buffer){
 					}
 				}
 			}
-			shift(buffer, j, "LEADING ZERO", LEXERROR);
+			shift(buffer, j, "LEADING ZERO", LEXERROR, LEXERROR);
 			whitespace(buffer);
 		}else{
 			int j = 1;
@@ -311,7 +334,7 @@ int long_real(char* buffer){
 						Need to remove the broken number
 
 					*/
-					shift(buffer, j + 1, "LEXERROR", LEXERROR);
+					shift(buffer, j + 1, "LEXERROR", LEXERROR, LEXERROR);
 					//printf("New Buffer = %s\n", buffer);
 					whitespace(buffer);
 				}else{
@@ -343,7 +366,7 @@ int long_real(char* buffer){
 							}
 							if(j > 5){
 								j = temp;
-								shift(buffer, j, "LEXERROR. First half of float too long.", LEXERROR);
+								shift(buffer, j, "LEXERROR. First half of float too long.", LEXERROR, LEXERROR);
 								whitespace(buffer);
 								return 1;
 							}else{
@@ -357,7 +380,7 @@ int long_real(char* buffer){
 								}
 								if(k > 5){
 									j = temp;
-									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR, LEXERROR);
 									whitespace(buffer);
 									return 1;
 								}
@@ -371,7 +394,7 @@ int long_real(char* buffer){
 								}
 								if(k > 2){
 									j = temp;
-									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR, LEXERROR);
 									whitespace(buffer);
 									return 1;
 								}
@@ -394,25 +417,25 @@ int long_real(char* buffer){
 								if(k == 2){
 									if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
 										j = temp;
-										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR, LEXERROR);
 										whitespace(buffer);
 										return 1;
 									}
 									if(buffer[temp - k] - '0' == 0){
-										shift(buffer, temp - k - 2, "REAL", REAL);
+										shift(buffer, temp - k - 2, "REAL", REAL, REAL);
 										whitespace(buffer);
 										return -1;
 									}
 								}else if(k == 1){
 									if(buffer[temp - k] - '0' == 0){
 										j = temp;
-										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR, LEXERROR);
 										whitespace(buffer);
 										return 1;
 									}
 								}
 
-								shift(buffer, j, "LONG_REAL", LONG_REAL);
+								shift(buffer, j, "LONG_REAL", LONG_REAL, LONG_REAL);
 								whitespace(buffer);
 								return 1;
 							}
@@ -433,7 +456,7 @@ int long_real(char* buffer){
 							}
 							if(j > 5){
 								j = temp;
-								shift(buffer, j, "LEXERROR. First half of float too long.", LEXERROR);
+								shift(buffer, j, "LEXERROR. First half of float too long.", LEXERROR, LEXERROR);
 								whitespace(buffer);
 								return 1;
 							}else{
@@ -447,7 +470,7 @@ int long_real(char* buffer){
 								}
 								if(k > 5){
 									j = temp;
-									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR, LEXERROR);
 									whitespace(buffer);
 									return 1;
 								}
@@ -461,20 +484,20 @@ int long_real(char* buffer){
 								}
 								if(k > 2){
 									j = temp;
-									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR, LEXERROR);
 									whitespace(buffer);
 									return 1;
 								}
 								if(k == 2){
 									if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
 										j = temp;
-										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR, LEXERROR);
 										whitespace(buffer);
 										return 1;
 									}
 //new addition
 									if(buffer[temp - k] - '0' == 0){
-										shift(buffer, temp - k - 1, "REAL", REAL);
+										shift(buffer, temp - k - 1, "REAL", REAL, REAL);
 										whitespace(buffer);
 										return -1;
 									}
@@ -482,13 +505,13 @@ int long_real(char* buffer){
 								}else if(k == 1){
 									if(buffer[temp - k] - '0' == 0){
 										j = temp;
-										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR, LEXERROR);
 										whitespace(buffer);
 									return 1;
 								}
 
 									j = temp;
-					 				shift(buffer, j, "LONG_REAL", LONG_REAL);
+					 				shift(buffer, j, "LONG_REAL", LONG_REAL, LONG_REAL);
 									whitespace(buffer);
 							 		return 1;
 								}
@@ -496,12 +519,12 @@ int long_real(char* buffer){
 
 						}else{
 							//printf("Error in formatting of long real. ");
-							shift(buffer, j + 1, "LEXERROR", LEXERROR);
+							shift(buffer, j + 1, "LEXERROR", LEXERROR, LEXERROR);
 							whitespace(buffer);
 						}
 					}else{
 						if(buffer[j - 1] == '0'){
-							shift(buffer, j, "LEXERROR. Trailing zeros", LEXERROR);
+							shift(buffer, j, "LEXERROR. Trailing zeros", LEXERROR, LEXERROR);
 						}else{
 							//found a floating point real
 							//Check the size of it.
@@ -513,7 +536,7 @@ int long_real(char* buffer){
 							}
 							if(j > 5){
 								j = temp;
-								shift(buffer, j, "LEXERROR. First half of float too long.", LEXERROR);
+								shift(buffer, j, "LEXERROR. First half of float too long.", LEXERROR, LEXERROR);
 								whitespace(buffer);
 								return 1;
 							}else{
@@ -526,13 +549,13 @@ int long_real(char* buffer){
 								}
 								if(k > 6){
 									j = temp;
-									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
+									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR, LEXERROR);
 									whitespace(buffer);
 									return 1;
 								}
 								//else, it's fine.
 								j = temp;
-								shift(buffer, j, "REAL", REAL);
+								shift(buffer, j, "REAL", REAL, REAL);
 								whitespace(buffer);
 							}
 						}
@@ -559,7 +582,7 @@ int long_real(char* buffer){
 					}
 					if(j > 5){
 						j = temp;
-						shift(buffer, j, "LEXERROR. First part too long.", LEXERROR);
+						shift(buffer, j, "LEXERROR. First part too long.", LEXERROR, LEXERROR);
 						whitespace(buffer);
 						return 1;
 					}else{
@@ -574,7 +597,7 @@ int long_real(char* buffer){
 						}
 						if(k > 2){
 							j = temp;
-							shift(buffer, j, "LEXERROR. Part after E too long.", LEXERROR);
+							shift(buffer, j, "LEXERROR. Part after E too long.", LEXERROR, LEXERROR);
 							whitespace(buffer);
 							return 1;
 						}
@@ -594,13 +617,13 @@ int long_real(char* buffer){
 						if(k == 2){
 							if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
 								j = temp;
-								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR, LEXERROR);
 								whitespace(buffer);
 								return 1;
 							}
 //new addition
 							if(buffer[temp - k] - '0' == 0){
-								shift(buffer, temp - k - 2, "REAL", REAL);
+								shift(buffer, temp - k - 2, "REAL", REAL, REAL);
 								whitespace(buffer);
 								return -1;
 							}
@@ -608,14 +631,14 @@ int long_real(char* buffer){
 						}else if(k == 1){
 							if(buffer[temp - k] - '0' == 0){
 								j = temp;
-								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR, LEXERROR);
 								whitespace(buffer);
 								return 1;
 							}
 						}
 
 						j = temp;
-						shift(buffer, j, "LONG_REAL", LONG_REAL);
+						shift(buffer, j, "LONG_REAL", LONG_REAL, LONG_REAL);
 						whitespace(buffer);
 					}
 				/*
@@ -638,7 +661,7 @@ int long_real(char* buffer){
 					}
 					if(j > 5){
 						j = temp;
-						shift(buffer, j, "LEXERROR. First part too long.", LEXERROR);
+						shift(buffer, j, "LEXERROR. First part too long.", LEXERROR, LEXERROR);
 						whitespace(buffer);
 						return 1;
 					}else{
@@ -652,7 +675,7 @@ int long_real(char* buffer){
 						}
 						if(k > 2){
 							j = temp;
-							shift(buffer, j, "LEXERROR. Part after E too long.", LEXERROR);
+							shift(buffer, j, "LEXERROR. Part after E too long.", LEXERROR, LEXERROR);
 							whitespace(buffer);
 							return 1;
 						}
@@ -671,20 +694,20 @@ int long_real(char* buffer){
 						if(k == 2){
 							if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
 								j = temp;
-								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR, LEXERROR);
 								whitespace(buffer);
 								return 1;
 							}
 						}else if(k == 1){
 							if(buffer[temp - k] - '0' == 0){
 								j = temp;
-								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR, LEXERROR);
 								whitespace(buffer);
 								return 1;
 							}
 						}
 						j = temp;
-						shift(buffer, j, "LONG_REAL", LONG_REAL);
+						shift(buffer, j, "LONG_REAL", LONG_REAL, LONG_REAL);
 						whitespace(buffer);
 						return 1;
 					}
@@ -693,11 +716,11 @@ int long_real(char* buffer){
 			}else{
 				//integer. check length
 				if (j >= 10){
-					shift(buffer, j, "LEXERROR, TOO LONG", INT);
+					shift(buffer, j, "LEXERROR, TOO LONG", INT, INT);
 					whitespace(buffer);
 					return 1;
 				}
-				shift(buffer, j, "INT", INT);
+				shift(buffer, j, "INT", INT, INT);
 				whitespace(buffer);
 				return 1;
 			}
@@ -726,14 +749,14 @@ int identifier(char* buffer){
 			j++;
 		}
 		if(j < 11){
-			shift(buffer, j, "ID", IDENTIFIER);
+			shift(buffer, j, "ID", IDENTIFIER, IDENTIFIER);
 			whitespace(buffer);
 			return 1;
 
 		}else{
 			//identifier too long
 			//Still remove the identifier that is too long
-			shift(buffer, j, "LEXERROR", LEXERROR);
+			shift(buffer, j, "LEXERROR", LEXERROR, LEXERROR);
 			whitespace(buffer);
 			return 1;
 		}
@@ -750,29 +773,29 @@ int relop(char* buffer){
 	if(buffer[j] == '>' && buffer[j + 1] == '='){
 		//Found (relop, GE)
 		//Now remove it
-		shift(buffer, j + 2, "RELOP", RELOP);
+		shift(buffer, j + 2, "RELOP", RELOP, RELOP);
 		whitespace(buffer);
 	}else if(buffer[j] == '>'){
 		//printf("Found (relop, GT)\n");
-		shift(buffer, j + 1, "RELOP", RELOP);
+		shift(buffer, j + 1, "RELOP", RELOP, RELOP);
 		whitespace(buffer);
 	}else if(buffer[j] == '='){
 		//printf("Found (relop, EQ)\n");
-		shift(buffer, j + 1, "RELOP", RELOP);
+		shift(buffer, j + 1, "RELOP", RELOP, RELOP);
 		whitespace(buffer);
 	}else if(buffer[j] == '<' && buffer[j + 1] == '='){
 		//printf("Found (relop, LE)\n");
-		shift(buffer, j + 2, "RELOP", RELOP);
+		shift(buffer, j + 2, "RELOP", RELOP, RELOP);
 		whitespace(buffer);
 
 	}else if(buffer[j] == '<' && buffer[j + 1] == '>'){
 		//printf("Found (relop, NE)\n");
-		shift(buffer, j + 2, "RELOP", RELOP);
+		shift(buffer, j + 2, "RELOP", RELOP, RELOP);
 		whitespace(buffer);
 
 	}else if(buffer[j] == '<'){
 		//printf("Found (relop, LT)\n");
-		shift(buffer, j + 1, "RELOP", RELOP);
+		shift(buffer, j + 1, "RELOP", RELOP, RELOP);
 		whitespace(buffer);
 
 	}else{
@@ -855,6 +878,7 @@ int whitespace(char* buffer){
 }
 
 int main(){
+	printf("%*s %*s           %*s           %*s\n", 20, "LINE NUMBER" , 20, "LEXEME", 20, "TOKEN TYPE", 20, "ATTRIBUTE");
 	file = fopen("sourcefile.txt", "r");
 	outfile = fopen("outfile.txt", "w");
 	get_reserved_words();
