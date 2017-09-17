@@ -279,7 +279,7 @@ int long_real(char* buffer){
 				while(isdigit(buffer[j])){
 					j++;
 				}
-				if(buffer[j] == 'E'){
+				if(buffer[j] == 'E' && buffer[j + 1] - '0' != 0){
 					j++;
 					if(buffer[j] == '+' || buffer[j] == '-'){
 						j++;
@@ -291,7 +291,7 @@ int long_real(char* buffer){
 			}else if(buffer[j] == 'E'){
 				//Still keep shifting
 					j++;
-				if(isdigit(buffer[j]) || buffer[j] == '+' || buffer[j] == '-'){
+				if((isdigit(buffer[j]) && buffer[j] - '0' != 0)|| buffer[j] == '+' || buffer[j] == '-'){
 					while(isdigit(buffer[j])){
 						j++;
 					}
@@ -376,6 +376,43 @@ int long_real(char* buffer){
 									whitespace(buffer);
 									return 1;
 								}
+								temp = j;
+								j = 0;
+								while(isdigit(buffer[j])){
+									j++;
+								}
+								j++; //342.
+								while(isdigit(buffer[j])){
+									j++;
+								}
+								j++; //342.321E
+								j++; //342.321E+
+								k = 0;
+								while(j < temp){
+									k++;
+									j++;
+								}
+								if(k == 2){
+									if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
+										j = temp;
+										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+										whitespace(buffer);
+										return 1;
+									}
+									if(buffer[temp - k] - '0' == 0){
+										shift(buffer, temp - k - 2, "REAL", REAL);
+										whitespace(buffer);
+										return -1;
+									}
+								}else if(k == 1){
+									if(buffer[temp - k] - '0' == 0){
+										j = temp;
+										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+										whitespace(buffer);
+										return 1;
+									}
+								}
+
 								shift(buffer, j, "LONG_REAL", LONG_REAL);
 								whitespace(buffer);
 								return 1;
@@ -417,7 +454,7 @@ int long_real(char* buffer){
 								}
 								//Now check if the part after the E is too long.
 								k = 0;
-								//increment by 2 because this is of the type 1.23E+21
+
 								j = j + 1;
 								while(j < temp){
 									j++;
@@ -428,7 +465,29 @@ int long_real(char* buffer){
 									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
 									whitespace(buffer);
 									return 1;
-								}else{
+								}
+								if(k == 2){
+									if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
+										j = temp;
+										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+										whitespace(buffer);
+										return 1;
+									}
+//new addition
+									if(buffer[temp - k] - '0' == 0){
+										shift(buffer, temp - k - 1, "REAL", REAL);
+										whitespace(buffer);
+										return -1;
+									}
+
+								}else if(k == 1){
+									if(buffer[temp - k] - '0' == 0){
+										j = temp;
+										shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+										whitespace(buffer);
+									return 1;
+								}
+
 									j = temp;
 					 				shift(buffer, j, "LONG_REAL", LONG_REAL);
 									whitespace(buffer);
@@ -520,7 +579,42 @@ int long_real(char* buffer){
 							whitespace(buffer);
 							return 1;
 						}
-						//else, it's fine.
+						//else, it's probably fine. But first check if the exponents are 0 or 00
+						temp = j;
+						j = 0;
+						while(isdigit(buffer[j])){
+							j++;
+						}
+						j++;
+						j++;
+						k = 0;
+						while(j < temp){
+							k++;
+							j++;
+						}
+						if(k == 2){
+							if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
+								j = temp;
+								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+								whitespace(buffer);
+								return 1;
+							}
+//new addition
+							if(buffer[temp - k] - '0' == 0){
+								shift(buffer, temp - k - 2, "REAL", REAL);
+								whitespace(buffer);
+								return -1;
+							}
+
+						}else if(k == 1){
+							if(buffer[temp - k] - '0' == 0){
+								j = temp;
+								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+								whitespace(buffer);
+								return 1;
+							}
+						}
+
 						j = temp;
 						shift(buffer, j, "LONG_REAL", LONG_REAL);
 						whitespace(buffer);
@@ -557,17 +651,43 @@ int long_real(char* buffer){
 							j++;
 							k++;
 						}
-						printf("%i, ", k);
 						if(k > 2){
 							j = temp;
 							shift(buffer, j, "LEXERROR. Part after E too long.", LEXERROR);
 							whitespace(buffer);
 							return 1;
 						}
-						//else, it's fine.
-
+						//else, it's probably fine. But first check if the exponents are 0 or 00
+						temp = j;
+						j = 0;
+						while(isdigit(buffer[j])){
+							j++;
+						}
+						j++;
+						k = 0;
+						while(j < temp){
+							k++;
+							j++;
+						}
+						if(k == 2){
+							if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
+								j = temp;
+								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+								whitespace(buffer);
+								return 1;
+							}
+						}else if(k == 1){
+							if(buffer[temp - k] - '0' == 0){
+								j = temp;
+								shift(buffer, j, "LEXERROR. 0 EXPONENT.", LEXERROR);
+								whitespace(buffer);
+								return 1;
+							}
+						}
+						j = temp;
 						shift(buffer, j, "LONG_REAL", LONG_REAL);
 						whitespace(buffer);
+						return 1;
 					}
 
 				}
