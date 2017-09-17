@@ -23,7 +23,7 @@
 #define ASSIGNOP	14
 #define DOUBLE_PERIOD	15
 #define LEXERROR	99
-#define RW_SIZE		22
+#define RW_SIZE		20
 #define OPEN_S_BRACKET	24
 #define CLOSE_S_BRACKET 25
 #define COMMENT_OPEN	26
@@ -243,7 +243,6 @@ int shift(char* buffer, int j, char* token_type, int attribute){
 			k++;
 		}
 	}
-
 	struct token new_token;
 	new_token.lexeme = (char*)malloc((j+1) * sizeof(char));
 	new_token.lexeme = id;
@@ -525,7 +524,7 @@ int long_real(char* buffer){
 									j++;
 									k++;
 								}
-								if(k > 5){
+								if(k > 6){
 									j = temp;
 									shift(buffer, j, "LEXERROR. Last half of float too long.", LEXERROR);
 									whitespace(buffer);
@@ -721,27 +720,30 @@ int long_real(char* buffer){
 */
 int identifier(char* buffer){
 	int j = 0;
-	if( isalpha(buffer[0]) ){
-		j = 1;
-		while( (isalpha(buffer[j]) || isdigit(buffer[j]))){
+	if(isalpha(buffer[0])){
+		j++;
+		while((isalpha(buffer[j]) || isdigit(buffer[j]))){
 			j++;
 		}
 		if(j < 11){
 			shift(buffer, j, "ID", IDENTIFIER);
 			whitespace(buffer);
+			return 1;
 
 		}else{
 			//identifier too long
 			//Still remove the identifier that is too long
 			shift(buffer, j, "LEXERROR", LEXERROR);
 			whitespace(buffer);
+			return 1;
 		}
 
 	}else{
 		//else the thing was not an identifier, so send it to the number checker
 		long_real(buffer);
-
+		return -1;
 	}
+
 }
 int relop(char* buffer){
 	int j = 0;
