@@ -1,4 +1,3 @@
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -7,80 +6,82 @@
 #define SIZE 72
 #define getName(var) #var
 
-/* Token Types */
-
-#define IDENTIFIER 	1
-#define INT	 	2
-#define REAL		3
-#define LONG_REAL	4
-#define RELOP		5
-#define ADDOP		6
-#define MULOP		7
-#define ASSIGNOP	14
-#define LEXERROR	99
-
-/* Attributes */
-#define E_LONG 		1
-#define ID_LONG		2
-#define GE		3
-#define GT		4
-#define EQ		5
-#define LE		6
-#define NE		7
-#define LT		8
-#define INTEGER_LONG	9
-#define FORMAT_ERROR 	10
-#define TRAILING_ZEROS	11
-#define LEADING_ZEROS	12
-#define FRACTION_SMALL	13
-#define FRACTION_LONG	14
-#define ZERO_EXPONENT	15
-#define DECIMAL_LONG	16
-#define UNRECOGNIZED_SYMBOL 17
-#define	DOT		8
-#define DOUBLE_DOT	38
-#define OPEN_PAREN	9
-#define CLOSE_PAREN	10
-#define	COLON		11
-#define OPEN_BRACKET	12
-#define CLOSE_BRACKET	13
-#define DOUBLE_PERIOD	15
-#define RW_SIZE		20
-#define OPEN_S_BRACKET	24
-#define CLOSE_S_BRACKET 25
-#define COMMENT_OPEN	26
-#define COMMENT_CLOSE	27
-#define COMMA		28
-#define	SEMICOLON	29
-#define STAR		30
-#define SLASH		31
-#define DIV		32
-#define PLUS		36
-#define MINUS		37
-
 int f = 0;
 int p = 0;
 int line = 1;
+int list_size = 0;
 
 FILE *file = NULL;
 FILE *outfile = NULL;
 
+typedef struct identifier{
+        char* lexeme;
+	char* ptr;
+	struct identifier *next;
+
+} identifier_t;
 typedef struct token{
 
         char* lexeme;
-
 	int token_type;
         char* token;
-
         int attribute;
-	char* attribute_c;
 
-	int flag; //is set if the attribute is a character
-	char* c_attribute;
+	char* attribute_c;
+//	char* c_attribute;
 
 } token_t;
 
 struct token reserved_words[20];
+struct identifier ll_start;
+void print_list(){
+	struct identifier *current = &ll_start;
+	int i = 0;
+	while(current != NULL){
+		printf("Lexeme = %s\n", current->lexeme);
+		current = current->next;
+		printf("i = %i", i);
+		i++;
+	}
+
+	return 0;
+
+}
+int find_identifier(char* id){
+	struct identifier *current = &ll_start;
+	while(current != NULL){
+		if(strstr(id, current->lexeme)){
+			return 1;
+		}
+
+		if(current->next != NULL){
+			current = current->next;
+		}
+			break;
+	}
+
+	return 0;
+}
+
+int add_item(struct identifier *head, char* id){
+	struct identifier *ptr = (struct identifier*) malloc(sizeof(struct identifier));
+	ptr->lexeme = (char*)malloc(sizeof(char) * sizeof(id));
+	strcpy(ptr->lexeme, id);
+	ptr->next = NULL;
+	head->next = ptr;
+
+/*
+	strcpy(new_node.lexeme, id);
+	new_node.ptr = NULL;
+	while(current->next != NULL){
+		current = current->next;
+	}
+	iptr = &new_node;
+	current->next = iptr;
+	printf("New node lexeme = %s", new_node.lexeme);
+*/
+	return 1;
+}
 
 void print_token(struct token t){
 	int width = 15;
@@ -127,23 +128,39 @@ int get_reserved_words(){
                 }
                 reserved_words[i].lexeme[j] = '\0';
 
-                //get exact size of token
-                j = j + 1;
-                k = 0;
-                int temp = j;
-                while(temp_buffer[j] != ' '){
-                        k++;
-                        j++;
-                }
+
+		int temp = j;
                 reserved_words[i].token = (char*)malloc(k * sizeof(char));
                 k = 0;
-                j = temp;
+//                j = temp;
+		j = 0;	
                 while(temp_buffer[j] != ' '){
                         reserved_words[i].token[k] = temp_buffer[j];
                         j++;
                         k++;
                 }
                 reserved_words[i].token[j] = '\0';
+		//get exact size of token int value
+                k = 0;
+                j = j + 1;
+
+                temp = j;
+                while(temp_buffer[j] != ' '){
+                        k++;
+                        j++;
+                }
+                char* token_t = (char*)malloc(k * sizeof(char));
+                k = 0;
+                j = temp;
+                while(temp_buffer[j] != '\0'){
+                        token_t[k] = temp_buffer[j];
+                        j++;
+                        k++;
+                }
+                token_t[j] = '\0';
+                reserved_words[i].token_type = atoi(token_t);
+		free(token_t);
+
 
                 //get exact size of attribute
                 k = 0;
@@ -153,7 +170,7 @@ int get_reserved_words(){
                         k++;
                         j++;
                 }
-                char* attribute = (char*)malloc(k * sizeof(char));
+                char* attribute= (char*)malloc(k * sizeof(char));
                 k = 0;
                 j = temp;
                 while(temp_buffer[j] != '\0'){
@@ -163,7 +180,20 @@ int get_reserved_words(){
                 }
                 attribute[j] = '\0';
                 reserved_words[i].attribute = atoi(attribute);
+		free(attribute);
+		if(reserved_words[i].token_type == 7){
+			//MULOP
+			reserved_words[i].token = (char*)malloc((sizeof("MULOP") + 1) * sizeof(char));
+			reserved_words[i].token = "MULOP";
+		}else if(reserved_words[i].token_type == 6){
+			//ADDOP
+			reserved_words[i].token = (char*)malloc((sizeof("ADDOP")+ 1) * sizeof(char));
+			reserved_words[i].token = "ADDOP";
 
+		}
+		reserved_words[i].attribute_c = (char*)malloc(sizeof(reserved_words[k].token) * sizeof(char));
+		reserved_words[i].attribute_c = reserved_words[k].lexeme;
+		//Give it the proper number
 
             i++;
         }
@@ -245,6 +275,8 @@ int clear(char* buffer){
 }
 //struct token shfit(char* buffer, int j, char* token_type, int attribute){
 int shift(char* buffer, int j, char* token_type, int token_i, int attribute, char* attribute_ch){
+	int flag = 0;
+
 	int k = 0;
 	char id[j + 1];
 	char new_buffer[SIZE];
@@ -256,12 +288,13 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 	//null terminate the new buffer
 	id[k] = '\0';
 
-	if(attribute == -1){
+	if(token_i == INT){
 		//int so we need to just give that a value of id
-		attribute = atoi(attribute_ch);
+		attribute = atoi(id);
 	}
-	if(attribute == -2){
+	if(token_i == REAL){
 		//real
+		attribute = atoi(id);
 	}
 	//Shift the buffer to the left and remove the token that was just recognized
 	//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
@@ -285,34 +318,58 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 			}
 			k++;
 		}
+		//it is not a reserved word. Check the symbol table to see if it already has an entry.
+		//it definitely won't be in the list if this is the first element in the list... so check if it is:
+
+		if(list_size == 0){
+
+			printf("Creating a node!");
+			struct identifier first_node; //(struct identifier*)malloc(sizeof(struct identifier));
+			first_node.lexeme = (char*)malloc(sizeof(id) * sizeof(char));
+			printf("LEXEME = %s" , id);
+			strcpy(first_node.lexeme, id);
+			first_node.next = NULL;
+
+			ll_start = first_node;
+			list_size++;
+			flag = 1;
+		}else{
+			//check if this identifier has been used before. If so, just update the current pointer to the node char ptr
+
+
+			int found = find_identifier(id);
+			if(found == 0){
+				printf("Not in the list.\n");
+				add_item(&ll_start, id);
+
+			}else{
+				printf("Found in the list.\n");
+
+			}
+			flag = 1;
+
+		}
+
 	}
-/*
-        char* lexeme;
 
-	int token_type;
-        char* token;
+		//if not a reserved word it needs to go into the symbol table
 
-        int attribute;
-	char* attribute_c;
+		struct token new_token;
+		new_token.lexeme = (char*)malloc((j+1) * sizeof(char));
+		new_token.lexeme = id;
+		new_token.token = (char*)malloc(sizeof(token_type) * sizeof(char));
+		new_token.token = token_type;
+		new_token.attribute_c = (char*)malloc(sizeof(attribute_ch)*sizeof(char));
+		new_token.attribute_c = attribute_ch;
 
-	int flag; //is set if the attribute is a character
-	char* c_attribute;
-
-*/
-	struct token new_token;
-	new_token.lexeme = (char*)malloc((j+1) * sizeof(char));
-	new_token.lexeme = id;
-	new_token.token = (char*)malloc(sizeof(token_type) * sizeof(char));
-	new_token.token = token_type;
-	new_token.attribute_c = (char*)malloc(sizeof(attribute_ch)*sizeof(char));
-	new_token.attribute_c = attribute_ch;
-	new_token.attribute = attribute;
-	//new_token.attribute = (int)malloc(sizeof(attribute) * sizeof());
-	new_token.attribute = attribute;
-	new_token.token_type = token_i;
-//	printf("(%d, %s, %s, %d)\n", line, new_token.lexeme, new_token.token, new_token.attribute);
-	print_token(new_token);
-	return 1;
+		if(flag == 1){
+			new_token.attribute = "hi!";
+		}else{
+			new_token.attribute = attribute;
+		}
+		new_token.token_type = token_i;
+		print_token(new_token);
+		return 1;
 }
 /*
 	This should identify all acceptable numbers.
@@ -930,4 +987,6 @@ int main(){
 
 	}
 
+	//print linked list
+	print_list();
 }
