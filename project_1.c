@@ -197,48 +197,6 @@ int get_reserved_words(){
 		}
 		attribute[k] = '\0';
 		reserved_words[i].i_attribute = atoi(attribute);
-//		printf("attribute = %i\n", reserved_words[i].i_attribute);
-/*
-                int j = 0;
-                int k = 0;
-                //grab everything until the line is over
-                while((ch = fgetc(rw_file)) != '\n'){
-                        temp_buffer[j] = ch;
-                        j++;
-                }
-                temp_buffer[j] = '\0';
-                //parse everything in the line
-
-                //get exact size of lexeme
-                j = 0;
-                while(temp_buffer[j] != ' '){
-                        j++;
-                }
-                reserved_words[i].lexeme = (char*)malloc(j * sizeof(char));
-                j = 0;
-                while(temp_buffer[j] != ' '){
-                        reserved_words[i].lexeme[j] = temp_buffer[j];
-                        j++;
-                }
-                reserved_words[i].lexeme[j] = '\0';
-
-		j++;
-		int temp = j;
-
-                reserved_words[i].token = (char*)malloc(k * sizeof(char));
-                k = 0;
-		j = 0;
-                while(temp_buffer[j] != ' '){
-                        reserved_words[i].token[k] = temp_buffer[j];
-                        j++;
-                        k++;
-                }
-                reserved_words[i].token[j] = '\0';
-		//get exact size of token int value
-                k = 0;
-                //j = j + 1;
-
-  //              temp = j;
 		j = temp; 
                while(temp_buffer[j] != ' '){
                         k++;
@@ -315,10 +273,6 @@ int get_reserved_words(){
 			reserved_words[i].attribute_c = "or";
 
 		}
- //               printf("%*i %*s        (%i) %*s           %*i   (%s)   \n", 20, line, 20, reserved_words[i].lexeme, reserved_words[i].token_type, 20, reserved_words[i].token, 20, reserved_words[i].i_attribute, reserved_words[i].attribute_c);
-
-		//reserved_words[i].attribute_c = (char*)malloc(sizeof(reserved_words[k].token) * sizeof(char));
-//		reserved_words[i].attribute_c = reserved_words[k].lexeme;
 		else{
 			reserved_words[i].attribute_c = NULL;
 		}
@@ -575,6 +529,7 @@ int long_real(char* buffer){
 			}else if(buffer[j] == 'E'){
 				//Still keep shifting
 					j++;
+
 				if((isdigit(buffer[j]) && buffer[j] - '0' != 0)|| buffer[j] == '+' || buffer[j] == '-'){
 					while(isdigit(buffer[j])){
 						j++;
@@ -607,7 +562,7 @@ int long_real(char* buffer){
 					/*
 						Something like: 1.23E+13
 					*/
-					if(buffer[j] == 'E'){
+					if(buffer[j] == 'E' && ((buffer[j + 1] == '+' && isdigit(buffer[j + 2]))|| (buffer[j + 1] == '-'  && isdigit(buffer[j + 2]))|| isdigit(buffer[j + 1]))){
 						j++;
 						if(buffer[j] == '+' || buffer[j] == '-'){
 							j++;
@@ -825,8 +780,11 @@ int long_real(char* buffer){
 			/*
 				Something like 10E+13
 			*/
-			}else if(buffer[j] == 'E'){
+		//	}else if(buffer[j] == 'E'){
+			}else if(buffer[j] == 'E' && ((buffer[j + 1] == '+' && isdigit(buffer[j + 2]))|| (buffer[j + 1] == '-'  && isdigit(buffer[j + 2]))|| isdigit(buffer[j + 1]))){
+
 				j++;
+
 				if(buffer[j] == '+' || buffer[j] == '-'){
 					j++;
 					while(isdigit(buffer[j])){
