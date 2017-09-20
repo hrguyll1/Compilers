@@ -93,6 +93,7 @@ int add_item(struct identifier *head, char* id){
 
 void print_token(struct token t){
 	int width = 15;
+	//if(t.token_type == 
         if(t.float_flag == 1){
                 printf("%*i %*s        (%i) %*s           %*f   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, t.f_attribute, t.attribute_c);
         }else if(t.int_flag == 1){
@@ -106,6 +107,8 @@ void print_token(struct token t){
 int get_reserved_words(){
         char temp_buffer[72];
         char ch;
+	char* attribute;
+	char* token_t;
         /*
                 Get reserved words and put them into an array.
         */
@@ -120,6 +123,82 @@ int get_reserved_words(){
         int i = 0;
         while(i < 20){
 
+		int j = 0;
+		int k = 0;
+		// Format: lexeme token attribute
+                //grab everything until the line is over
+                while((ch = fgetc(rw_file)) != '\n'){
+                        temp_buffer[j] = ch;
+                        j++;
+                }
+                temp_buffer[j] = '\0';
+		j = 0;
+		k = 0;
+		//get length of the lexeme
+		while(temp_buffer[j] != ' '){
+			j++;
+			k++;
+		}
+		//allocate space for the lexeme
+                reserved_words[i].lexeme = (char*)malloc(j * sizeof(char));
+
+		//allocate space for the token string
+
+                reserved_words[i].token = (char*)malloc(j * sizeof(char));
+		//copy over the lexeme
+		k = 0;
+		j = 0;
+		while(temp_buffer[j] != ' '){
+			//printf("%c ", temp_buffer[j]);
+			reserved_words[i].lexeme[k] = temp_buffer[j];
+			reserved_words[i].token[k] = temp_buffer[j];
+			j++;
+			k++;
+		}
+		reserved_words[i].lexeme[k] = '\0';
+		reserved_words[i].token[k]= '\0';
+//		printf("lexeme = %s\n", reserved_words[i].lexeme);
+
+		k = 0;
+		j = j + 1;
+		int temp = j;
+		//now get the token size
+		while(temp_buffer[j] != ' '){
+			j++;
+			k++;
+		}
+
+                token_t = (char*)malloc(k * sizeof(char));
+		j = temp;
+		k = 0;
+		while(temp_buffer[j] != ' '){
+			token_t[k] = temp_buffer[j];
+			j++;
+			k++;
+		}
+		token_t[k] = '\0';
+		reserved_words[i].token_type = atoi(token_t);
+//		printf("token = %i\n", reserved_words[i].token_type);
+
+		temp = j;
+		k = 0;
+		//get size of attribute
+		while(temp_buffer[j] != '\0'){
+			j++;
+			k++;
+		}
+		attribute = (char*)malloc(k * sizeof(char));
+		j = temp;
+		k = 0;
+		while(temp_buffer[j] != '\0'){
+			attribute[k] = temp_buffer[j];
+			j++;
+			k++;
+		}
+		attribute[k] = '\0';
+		reserved_words[i].i_attribute = atoi(attribute);
+//		printf("attribute = %i\n", reserved_words[i].i_attribute);
+/*
                 int j = 0;
                 int k = 0;
                 //grab everything until the line is over
@@ -143,12 +222,12 @@ int get_reserved_words(){
                 }
                 reserved_words[i].lexeme[j] = '\0';
 
-
+		j++;
 		int temp = j;
+
                 reserved_words[i].token = (char*)malloc(k * sizeof(char));
                 k = 0;
-//                j = temp;
-		j = 0;	
+		j = 0;
                 while(temp_buffer[j] != ' '){
                         reserved_words[i].token[k] = temp_buffer[j];
                         j++;
@@ -157,10 +236,11 @@ int get_reserved_words(){
                 reserved_words[i].token[j] = '\0';
 		//get exact size of token int value
                 k = 0;
-                j = j + 1;
+                //j = j + 1;
 
-                temp = j;
-                while(temp_buffer[j] != ' '){
+  //              temp = j;
+		j = temp; 
+               while(temp_buffer[j] != ' '){
                         k++;
                         j++;
                 }
@@ -179,7 +259,7 @@ int get_reserved_words(){
 
                 //get exact size of attribute
                 k = 0;
-                j = j + 1;
+//                j = j + 1;
                 temp = j;
                 while(temp_buffer[j] != '\0'){
                         k++;
@@ -194,9 +274,13 @@ int get_reserved_words(){
                         k++;
                 }
                 attribute[j] = '\0';
+		printf("attribute = %s\n", attribute);
+*/
+
 		reserved_words[i].int_flag = 1;
-                reserved_words[i].i_attribute = atoi(attribute);
-		free(attribute);
+                //reserved_words[i].i_attribute = atoi(attribute);
+		//free(attribute);
+		//free(token_t);
 		if(reserved_words[i].token_type == 7){
 			//MULOP
 			reserved_words[i].token = (char*)malloc((sizeof("MULOP") + 1) * sizeof(char));
@@ -207,8 +291,37 @@ int get_reserved_words(){
 			reserved_words[i].token = "ADDOP";
 
 		}
-		reserved_words[i].attribute_c = (char*)malloc(sizeof(reserved_words[k].token) * sizeof(char));
-		reserved_words[i].attribute_c = reserved_words[k].lexeme;
+		if(reserved_words[i].token_type == 7 && reserved_words[i].i_attribute == 39){
+
+			reserved_words[i].attribute_c = (char*)malloc(sizeof("and") * sizeof(char));
+			reserved_words[i].attribute_c = "and";
+
+		}
+		else if(reserved_words[i].token_type == 7 && reserved_words[i].i_attribute == 42){
+
+			reserved_words[i].attribute_c = (char*)malloc(sizeof("div") * sizeof(char));
+			reserved_words[i].attribute_c = "div";
+
+		}
+		else if(reserved_words[i].token_type == 7 && reserved_words[i].i_attribute == 47){
+
+			reserved_words[i].attribute_c = (char*)malloc(sizeof("mod") * sizeof(char));
+			reserved_words[i].attribute_c = "mod";
+
+		}
+		else if(reserved_words[i].token_type == 6 && reserved_words[i].i_attribute == 51){
+
+			reserved_words[i].attribute_c = (char*)malloc(sizeof("or") * sizeof(char));
+			reserved_words[i].attribute_c = "or";
+
+		}
+ //               printf("%*i %*s        (%i) %*s           %*i   (%s)   \n", 20, line, 20, reserved_words[i].lexeme, reserved_words[i].token_type, 20, reserved_words[i].token, 20, reserved_words[i].i_attribute, reserved_words[i].attribute_c);
+
+		//reserved_words[i].attribute_c = (char*)malloc(sizeof(reserved_words[k].token) * sizeof(char));
+//		reserved_words[i].attribute_c = reserved_words[k].lexeme;
+		else{
+			reserved_words[i].attribute_c = NULL;
+		}
 		//Give it the proper number
 
             i++;
@@ -227,10 +340,10 @@ int catch_all(char* buffer){
 		shift(buffer, j + 1, "SEMICOLON", SEMICOLON, 0, NULL);
 		whitespace(buffer);
 	}else if(buffer[j] == '+'){
-		shift(buffer, j + 1, "ADDOP", PLUS, 0, NULL);
+		shift(buffer, j + 1, "ADDOP", ADDOP, PLUS, NULL);
 		whitespace(buffer);
 	}else if(buffer[j] == '-'){
-		shift(buffer, j + 1, "ADDOP", MINUS, 0, NULL);
+		shift(buffer, j + 1, "ADDOP", ADDOP, MINUS, NULL);
 		whitespace(buffer);
 	}else if(buffer[j] == ':' && buffer[j + 1] == '='){
 		shift(buffer, j + 2, "ASSIGNOP", ASSIGNOP, 0, NULL);
@@ -266,11 +379,11 @@ int catch_all(char* buffer){
 		shift(buffer, j + 2, "COMMENT_CLOSE", COMMENT_CLOSE, 0, NULL);
 		whitespace(buffer);
 	}else if(buffer[j] == '*'){
-		shift(buffer, j + 1, "MULOP", STAR, 0, NULL);
+		shift(buffer, j + 1, "MULOP", MULOP, STAR, NULL);
 		whitespace(buffer);
 	}else if(buffer[j] == '/'){
 
-		shift(buffer, j + 1, "MULOP", SLASH, 0, NULL);
+		shift(buffer, j + 1, "MULOP", MULOP, SLASH, NULL);
 		whitespace(buffer);
 	}else if(buffer[j] == '('){
 
@@ -326,7 +439,7 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 		k = 0;
 		while(k < RW_SIZE){
 			int space = 40;
-			if(strstr(id, reserved_words[k].lexeme)){
+			if(strcmp(id, reserved_words[k].lexeme) == 0){
 				//printf("(%i, %s, %s, %i)\n", line, reserved_words[k].lexeme, reserved_words[k].token, reserved_words[k].attribute);
 				print_token(reserved_words[k]);
 				return 1;
@@ -377,6 +490,22 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 		new_token.token = token_type;
 		new_token.attribute_c = (char*)malloc(sizeof(attribute_ch)*sizeof(char));
 		new_token.attribute_c = attribute_ch;
+		if(token_i == ADDOP && attribute == PLUS){
+			new_token.attribute_c = (char*) malloc(sizeof(char) * sizeof("plus"));
+			new_token.attribute_c = "plus";
+		}
+		if(token_i == MULOP && attribute == STAR){
+			new_token.attribute_c = (char*) malloc(sizeof(char) * sizeof("star"));
+			new_token.attribute_c = "star";
+		}
+		if(token_i == MULOP && attribute == SLASH){
+			new_token.attribute_c = (char*) malloc(sizeof(char) * sizeof("slash"));
+			new_token.attribute_c = "slash";
+		}
+		if(token_i == ADDOP && attribute == MINUS){
+			new_token.attribute_c = (char*) malloc(sizeof(char) * sizeof("minus"));
+			new_token.attribute_c = "minus";
+		}
 
 		if(token_i == INT){
 			//int so we need to just give that a value of id
@@ -1029,4 +1158,5 @@ int main(){
 
 	//print linked list
 	print_list();
+
 }
