@@ -25,8 +25,7 @@ typedef struct token{
         char* lexeme;
 	int token_type;
         char* token;
-        int attribute;
-
+        char* attribute;
 	char* attribute_c;
 //	char* c_attribute;
 
@@ -37,20 +36,21 @@ struct identifier ll_start;
 void print_list(){
 	struct identifier *current = &ll_start;
 	int i = 0;
+	printf("\n");
 	while(current != NULL){
 		printf("Lexeme = %s\n", current->lexeme);
 		current = current->next;
-		printf("i = %i", i);
 		i++;
 	}
 
-	return 0;
 
 }
-int find_identifier(char* id){
+int find_identifier(char* id, char* out){
 	struct identifier *current = &ll_start;
 	while(current != NULL){
-		if(strstr(id, current->lexeme)){
+//		if(strstr(id, current->lexeme)){
+		if(strcmp(id, current->lexeme)){
+			out = current->ptr;
 			return 1;
 		}
 
@@ -63,24 +63,18 @@ int find_identifier(char* id){
 	return 0;
 }
 
-int add_item(struct identifier *head, char* id){
+char* add_item(struct identifier *head, char* id){
 	struct identifier *ptr = (struct identifier*) malloc(sizeof(struct identifier));
-	ptr->lexeme = (char*)malloc(sizeof(char) * sizeof(id));
-	strcpy(ptr->lexeme, id);
-	ptr->next = NULL;
-	head->next = ptr;
+	struct identifier *current = &ll_start;
 
-/*
-	strcpy(new_node.lexeme, id);
-	new_node.ptr = NULL;
 	while(current->next != NULL){
 		current = current->next;
 	}
-	iptr = &new_node;
-	current->next = iptr;
-	printf("New node lexeme = %s", new_node.lexeme);
-*/
-	return 1;
+	ptr->lexeme = (char*)malloc(sizeof(char) * sizeof(id));
+	strcpy(ptr->lexeme, id);
+	ptr->next = NULL;
+	current->next = ptr;
+	return ptr;
 }
 
 void print_token(struct token t){
@@ -222,6 +216,9 @@ int catch_all(char* buffer){
 	}else if(buffer[j] == ','){
 		shift(buffer, j + 1, "COMMA", COMMA, 0, NULL);
 		whitespace(buffer);
+	}else if(buffer[j] == '.' && buffer[j + 1] == '.'){
+		shift(buffer, j + 2, "DOTDOT", DOTDOT, 0, NULL);
+		whitespace(buffer);
 	}else if(buffer[j] == '.'){
 		shift(buffer, j + 1, "DOT", DOT, 0, NULL);
 		whitespace(buffer);
@@ -276,7 +273,7 @@ int clear(char* buffer){
 //struct token shfit(char* buffer, int j, char* token_type, int attribute){
 int shift(char* buffer, int j, char* token_type, int token_i, int attribute, char* attribute_ch){
 	int flag = 0;
-
+	char* out;
 	int k = 0;
 	char id[j + 1];
 	char new_buffer[SIZE];
@@ -287,15 +284,15 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 	}
 	//null terminate the new buffer
 	id[k] = '\0';
-
+	char att;
 	if(token_i == INT){
 		//int so we need to just give that a value of id
 		attribute = atoi(id);
 	}
-	if(token_i == REAL){
+//	if(token_i == REAL){
 		//real
-		attribute = atoi(id);
-	}
+//		attribute = stof(id);
+//	}
 	//Shift the buffer to the left and remove the token that was just recognized
 	//COULD PRESENT AN OFF-BY-ONE ERROR. TEST THIS.
 	int z = 0;
@@ -311,7 +308,7 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 		k = 0;
 		while(k < RW_SIZE){
 			int space = 40;
-			if(strstr(reserved_words[k].lexeme, id)){
+			if(strstr(id, reserved_words[k].lexeme)){
 				//printf("(%i, %s, %s, %i)\n", line, reserved_words[k].lexeme, reserved_words[k].token, reserved_words[k].attribute);
 				print_token(reserved_words[k]);
 				return 1;
@@ -323,10 +320,8 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 
 		if(list_size == 0){
 
-			printf("Creating a node!");
 			struct identifier first_node; //(struct identifier*)malloc(sizeof(struct identifier));
 			first_node.lexeme = (char*)malloc(sizeof(id) * sizeof(char));
-			printf("LEXEME = %s" , id);
 			strcpy(first_node.lexeme, id);
 			first_node.next = NULL;
 
@@ -337,13 +332,13 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 			//check if this identifier has been used before. If so, just update the current pointer to the node char ptr
 
 
-			int found = find_identifier(id);
+			int found = find_identifier(id, out);
 			if(found == 0){
-				printf("Not in the list.\n");
-				add_item(&ll_start, id);
+				//printf("Not in the list.\n");
+				out = add_item(&ll_start, id);
 
 			}else{
-				printf("Found in the list.\n");
+				//printf("Found in the list.\n");
 
 			}
 			flag = 1;
@@ -363,7 +358,7 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 		new_token.attribute_c = attribute_ch;
 
 		if(flag == 1){
-			new_token.attribute = "hi!";
+			new_token.attribute = out;
 		}else{
 			new_token.attribute = attribute;
 		}
@@ -616,9 +611,9 @@ int long_real(char* buffer){
 							whitespace(buffer);
 						}
 					}else{
-						if(buffer[j - 1] == '0'){
-							shift(buffer, j, "LEXERROR", LEXERROR, TRAILING_ZEROS, "Trailing zeros");
-						}else{
+					//	if(buffer[j - 1] == '0'){
+					//		shift(buffer, j, "LEXERROR", LEXERROR, TRAILING_ZEROS, "Trailing zeros");
+					//	}else{
 							//found a floating point real
 							//Check the size of it.
 							int temp = j;
@@ -651,7 +646,7 @@ int long_real(char* buffer){
 								shift(buffer, j, "REAL", REAL, -1, "value");
 								whitespace(buffer);
 							}
-						}
+					//	}
 					}
 				}
 			/*
@@ -838,6 +833,7 @@ int identifier(char* buffer){
 	int j = 0;
 	if(isalpha(buffer[0])){
 		j++;
+
 		while((isalpha(buffer[j]) || isdigit(buffer[j]))){
 			j++;
 		}
