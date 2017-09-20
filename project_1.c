@@ -16,6 +16,7 @@ FILE *outfile = NULL;
 
 typedef struct identifier{
         char* lexeme;
+	int value;
 	char* ptr;
 	struct identifier *next;
 
@@ -29,10 +30,12 @@ typedef struct token{
 	int float_flag;
 	int int_flag;
 	int char_flag;
+	int ptr_flag;
 
         char* c_attribute;
 	int i_attribute;
 	float f_attribute;
+	char* p_attribute;
 
 	char* attribute_c;
 //	char* c_attribute;
@@ -46,7 +49,7 @@ void print_list(){
 	int i = 0;
 	printf("\n");
 	while(current != NULL){
-		printf("Lexeme = %s\n", current->lexeme);
+		printf("Lexeme = |%s|\n", current->lexeme);
 		current = current->next;
 		i++;
 	}
@@ -56,16 +59,11 @@ void print_list(){
 int find_identifier(char* id, char* out){
 	struct identifier *current = &ll_start;
 	while(current != NULL){
-//		if(strstr(id, current->lexeme)){
-		if(strcmp(id, current->lexeme)){
+		if(strcmp(id, current->lexeme) == 0){
 			out = current->ptr;
 			return 1;
 		}
-
-		if(current->next != NULL){
-			current = current->next;
-		}
-			break;
+		current = current->next;
 	}
 
 	return 0;
@@ -82,7 +80,7 @@ char* add_item(struct identifier *head, char* id){
 	strcpy(ptr->lexeme, id);
 	ptr->next = NULL;
 	current->next = ptr;
-	return ptr;
+	return ptr->lexeme;
 }
 
 void print_token(struct token t){
@@ -91,6 +89,8 @@ void print_token(struct token t){
                 printf("%*i %*s        (%i) %*s           %*f   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, t.f_attribute, t.attribute_c);
         }else if(t.int_flag == 1){
                 printf("%*i %*s        (%i) %*s           %*i   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, t.i_attribute, t.attribute_c);
+	}else if(t.ptr_flag == 1){
+                printf("%*i %*s        (%i) %*s           %*p   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, &t.p_attribute, t.attribute_c);
         }else{
                 printf("%*i %*s        (%i) %*s           %*s   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, t.c_attribute, t.attribute_c);
 	}
@@ -345,11 +345,9 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 
 			int found = find_identifier(id, out);
 			if(found == 0){
-				//printf("Not in the list.\n");
 				out = add_item(&ll_start, id);
 
 			}else{
-				//printf("Found in the list.\n");
 
 			}
 			flag = 1;
@@ -379,7 +377,11 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 			new_token.float_flag = 1;
 			new_token.f_attribute = atof(id);
 		}else if(flag == 1){
-			new_token.attribute_c = out;
+			new_token.ptr_flag = 1;
+			new_token.p_attribute = out;
+			new_token.attribute_c = (char*)malloc(sizeof("ptr") * sizeof(char));
+			new_token.attribute_c = "ptr";
+		//	printf("p = %p", out);
 
 		}else if(char_flag == 1 || token_i == LONG_REAL){
 			new_token.char_flag = 1;
