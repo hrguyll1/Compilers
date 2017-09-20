@@ -3,6 +3,7 @@
 #include <string.h>
 #include <ctype.h>
 #include "headers.h"
+#include <time.h>
 #define SIZE 72
 #define getName(var) #var
 
@@ -49,19 +50,19 @@ void print_list(){
 	int i = 0;
 	printf("\n");
 	while(current != NULL){
-		printf("Lexeme = |%s|\n", current->lexeme);
+		printf("Lexeme = |%s|, ptr = %i\n", current->lexeme, current->value);
 		current = current->next;
 		i++;
 	}
 
 
 }
-int find_identifier(char* id, char* out){
+int find_identifier(char* id, int* out){
+
 	struct identifier *current = &ll_start;
 	while(current != NULL){
 		if(strcmp(id, current->lexeme) == 0){
-			out = current->ptr;
-			return 1;
+			return current->value;
 		}
 		current = current->next;
 	}
@@ -69,7 +70,7 @@ int find_identifier(char* id, char* out){
 	return 0;
 }
 
-char* add_item(struct identifier *head, char* id){
+int add_item(struct identifier *head, char* id){
 	struct identifier *ptr = (struct identifier*) malloc(sizeof(struct identifier));
 	struct identifier *current = &ll_start;
 
@@ -78,9 +79,16 @@ char* add_item(struct identifier *head, char* id){
 	}
 	ptr->lexeme = (char*)malloc(sizeof(char) * sizeof(id));
 	strcpy(ptr->lexeme, id);
+
+	//give value a random address
+	time_t t;
+	srand(time(&t));
+	ptr->value = rand() / line;
+
 	ptr->next = NULL;
 	current->next = ptr;
-	return ptr->lexeme;
+
+	return ptr->value;
 }
 
 void print_token(struct token t){
@@ -90,7 +98,7 @@ void print_token(struct token t){
         }else if(t.int_flag == 1){
                 printf("%*i %*s        (%i) %*s           %*i   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, t.i_attribute, t.attribute_c);
 	}else if(t.ptr_flag == 1){
-                printf("%*i %*s        (%i) %*s           %*p   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, &t.p_attribute, t.attribute_c);
+                printf("%*i %*s        (%i) %*s           %*i   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, t.i_attribute, t.attribute_c);
         }else{
                 printf("%*i %*s        (%i) %*s           %*s   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, t.c_attribute, t.attribute_c);
 	}
@@ -287,7 +295,7 @@ int clear(char* buffer){
 //struct token shfit(char* buffer, int j, char* token_type, int attribute){
 int shift(char* buffer, int j, char* token_type, int token_i, int attribute, char* attribute_ch){
 	int flag = 0;
-	char* out;
+	int out;
 	int k = 0;
 	char id[j + 1];
 	char new_buffer[SIZE];
@@ -333,22 +341,26 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 			struct identifier first_node; //(struct identifier*)malloc(sizeof(struct identifier));
 			first_node.lexeme = (char*)malloc(sizeof(id) * sizeof(char));
 			strcpy(first_node.lexeme, id);
+			first_node.ptr = first_node.lexeme;
 			first_node.next = NULL;
-
+			time_t t;
+			srand(time(&t));
+			first_node.value = rand();
+			out = first_node.value;
 			ll_start = first_node;
 			list_size++;
+
 			flag = 1;
 			char_flag = 1;
 		}else{
 			//check if this identifier has been used before. If so, just update the current pointer to the node char ptr
 
 
-			int found = find_identifier(id, out);
+			int found = find_identifier(id, &out);
 			if(found == 0){
 				out = add_item(&ll_start, id);
-
 			}else{
-
+				out = found;
 			}
 			flag = 1;
 
@@ -357,8 +369,8 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 	}
 
 		//if not a reserved word it needs to go into the symbol table
-
 		struct token new_token;
+
 		new_token.lexeme = (char*)malloc((j+1) * sizeof(char));
 		new_token.lexeme = id;
 		new_token.token = (char*)malloc(sizeof(token_type) * sizeof(char));
@@ -378,7 +390,7 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 			new_token.f_attribute = atof(id);
 		}else if(flag == 1){
 			new_token.ptr_flag = 1;
-			new_token.p_attribute = out;
+			new_token.i_attribute = out;
 			new_token.attribute_c = (char*)malloc(sizeof("ptr") * sizeof(char));
 			new_token.attribute_c = "ptr";
 		//	printf("p = %p", out);
