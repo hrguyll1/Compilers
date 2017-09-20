@@ -93,7 +93,9 @@ int add_item(struct identifier *head, char* id){
 
 void print_token(struct token t){
 	int width = 15;
-	//if(t.token_type == 
+	if(t.token_type == LEXERROR){
+		fprintf(outfile,"	%s!    %s: %s", t.token, t.attribute_c, t.lexeme);
+	}
         if(t.float_flag == 1){
                 printf("%*i %*s        (%i) %*s           %*f   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, t.f_attribute, t.attribute_c);
         }else if(t.int_flag == 1){
@@ -806,7 +808,9 @@ int long_real(char* buffer){
 		if(buffer[0] - '0' == 0 && !isdigit(buffer[1]) && buffer[1] != '.'){
 			shift(buffer, 1, "INT", INT, -1, "value");
 			whitespace(buffer);
-		}else if(buffer[0] - '0' == 0 && buffer[1] != '.'){
+		}
+		/*
+		else if(buffer[0] - '0' == 0 && buffer[1] != '.'){
 			int j = 1;
 			//printf("Error in integer format. Cannot start with 0.\n");
 			//need to get the entire integer here.
@@ -841,7 +845,8 @@ int long_real(char* buffer){
 			}
 			shift(buffer, j, "LEXERROR", LEXERROR, LEADING_ZEROS, "Leading Zeros");
 			whitespace(buffer);
-		}else{
+	*/
+		else{
 			int j = 1;
 			while(isdigit(buffer[j])){
 				j++;
@@ -855,10 +860,39 @@ int long_real(char* buffer){
 					shift(buffer, j + 1, "LEXERROR", LEXERROR, FRACTION_SMALL, "Need digit after .");
 					whitespace(buffer);
 				}else{
+/*9/20*/
+					/*
+					int zero_count = 0;
+					while(buffer[j] - '0' == 0){
+						zero_count++;
+						j++;
+					}
+					*/
+				//	if(isdigit(buffer[j])){
+						//it's okay because it's like: 0.01 or 0.001
+						//fine
+				//	}else{
+						//extract broken number because of trailing zeros and throw error.
+						j++;
+						while(isdigit(buffer[j])){
+							j++;
+						}
+						if(buffer[j] == 'E' && (buffer[j + 1] == '+' || buffer[j + 1] == '-'|| isdigit(buffer[j + 1] ))){
+							j++; j++;
+							while(isdigit(buffer[j])){
+								j++;
+							}
+							shift(buffer, j, "LEXERROR", LEXERROR, LEADING_ZEROS, "Leading Zeros");
+							whitespace(buffer);
+							return 0;
+						}
+
+				//	}
 					while(isdigit(buffer[j])){
 						//keep incrementing
 						j++;
 					}
+
 					//found long
 					//	Something like: 1.23E+13
 					if(buffer[j] == 'E' && ((buffer[j + 1] == '+' && isdigit(buffer[j + 2]))|| (buffer[j + 1] == '-'  && isdigit(buffer[j + 2]))|| isdigit(buffer[j + 1]))){
