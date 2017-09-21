@@ -94,7 +94,7 @@ int add_item(struct identifier *head, char* id){
 void print_token(struct token t){
 	int width = 15;
 	if(t.token_type == LEXERROR){
-		fprintf(outfile,"	%s!    %s: %s", t.token, t.attribute_c, t.lexeme);
+		fprintf(outfile,"	%s!  %s :  %s\n", t.token, t.attribute_c, t.lexeme);
 	}
         if(t.float_flag == 1){
                 printf("%*i %*s        (%i) %*s           %*f   (%s)   \n", 20, line, 20, t.lexeme, t.token_type, 20, t.token, 20, t.f_attribute, t.attribute_c);
@@ -648,7 +648,7 @@ int long_real(char* buffer){
 										return 1;
 									}
 									if(buffer[temp - 1] - '0' == 0){
-										shift(buffer, temp - k - 2, "REAL", REAL, -2, "value");
+										shift(buffer, temp - k - 2, "LONG_REAL", LONG_REAL, -2, "value");
 										whitespace(buffer);
 										return -1;
 									}
@@ -728,7 +728,7 @@ int long_real(char* buffer){
 										whitespace(buffer);
 										return 1;
                   }else{
-										shift(buffer, temp, "REAL", REAL, -2, "value");
+										shift(buffer, temp, "LONG_REAL", LONG_REAL, -2, "value");
 										whitespace(buffer);
 										return -1;
 									}
@@ -1085,8 +1085,8 @@ int whitespace(char* buffer){
 			line++;
 			int status = readline(buffer);
 			if(status == -1){
-				line--;
-				line--;
+				//line--;
+				//line--;
 				//printf("End of file.\n");
 				struct token t;
 				t.lexeme = (char*)malloc(sizeof(char) * sizeof("EOF"));
@@ -1098,6 +1098,9 @@ int whitespace(char* buffer){
 				t.token = (char*)malloc(sizeof(char) * sizeof("EOF"));
 				t.token = "EOF";
 				print_token(t);
+      //  line++;
+      //  line++;
+        fprintf(outfile,"%i     EOF\n", line++);
 				break;
 			}
 			i = 0;
