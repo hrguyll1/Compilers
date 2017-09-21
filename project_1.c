@@ -505,7 +505,6 @@ int long_real(char* buffer){
 			shift(buffer, 1, "INT", INT, -1, "value");
 			whitespace(buffer);
 		}else if(buffer[0] - '0' == 0 && buffer[1] != '.'){
-      printf("Made it here!");
 			int j = 1;
 			//printf("Error in integer format. Cannot start with 0.\n");
 			//need to get the entire integer here.
@@ -602,7 +601,8 @@ int long_real(char* buffer){
                   Else...
                   Check if there are trailing zeros
                 */
-                if(buffer[j - 1] - '0' == 0){
+                //changed this 9/20 to make sure 3.0E12 and 2.0E+12 works
+                if(buffer[j - 1] - '0' == 0 && isdigit(buffer[j - 2]) && (buffer[j - 2] - '0' != 0)){
                   j = temp;
                   shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Trailing zeros.");
                   whitespace(buffer);
@@ -618,7 +618,7 @@ int long_real(char* buffer){
 								}
 								if(k > 2){
 									j = temp;
-									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Decimal portion too long.");
+									shift(buffer, j, "LEXERROR", LEXERROR, EXPONENT_LONG, "Exponent too long.");
 									whitespace(buffer);
 									return 1;
 								}
@@ -643,19 +643,27 @@ int long_real(char* buffer){
 									if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
 
 										j = temp;
-										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "LEXERROR. 0 EXPONENT.");
+										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "Zero exponent.");
 										whitespace(buffer);
 										return 1;
 									}
 									if(buffer[temp - 1] - '0' == 0){
-										shift(buffer, temp - k - 2, "LONG_REAL", LONG_REAL, -2, "value");
+
+									 	shift(buffer, temp - k - 2, "LONG_REAL", LONG_REAL, -2, "value");
 										whitespace(buffer);
 										return -1;
 									}
-								}else if(k == 1){
+								}else if(k == 2){
+                    if(buffer[temp - 1] - '0' == 0 && (buffer[temp -k + 1] - '0' == 0)){
+                      j = temp;
+                      shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "Zero exponent.");
+                      whitespace(buffer);
+                      return 1;
+                    }
+                }else if(k == 1){
 									if(buffer[temp - k] - '0' == 0){
 										j = temp;
-										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "LEXERROR. 0 EXPONENT.");
+										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "Zero exponent.");
 										whitespace(buffer);
 										return 1;
 									}
@@ -701,6 +709,19 @@ int long_real(char* buffer){
 									return 1;
 								}
 								//Now check if the part after the E is too long.
+                /*
+                  Else...
+                  Check if there are trailing zeros
+                */
+                //changed this 9/20 to make sure 3.0E12 and 2.0E12 works
+            //    if(buffer[j - 1] - '0' == 0 && isdigit(buffer[j - 2])){
+
+            if(buffer[j - 1] - '0' == 0){// && (isdigit(buffer[j - 2]) && (buffer[j - 2] - '0' != 0))){
+                  j = temp;
+                  shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Trailing zeros.");
+                  whitespace(buffer);
+                  return 1;
+                }
 								k = 0;
 
 								j = j + 1;
@@ -710,7 +731,7 @@ int long_real(char* buffer){
 								}
 								if(k > 2){
 									j = temp;
-									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Decimal portion too long.");
+									shift(buffer, j, "LEXERROR", LEXERROR, EXPONENT_LONG, "Exponent too long.");
 									whitespace(buffer);
 									return 1;
 								}
@@ -754,11 +775,7 @@ int long_real(char* buffer){
 							whitespace(buffer);
 						}
 					}else{
-					//	if(buffer[j - 1] == '0'){
-					//		shift(buffer, j, "LEXERROR", LEXERROR, TRAILING_ZEROS, "Trailing zeros");
-					//	}else{
-							//found a floating point real
-							//Check the size of it.
+
 							int temp = j;
 							j = 0;
 							while(isdigit(buffer[j])){
@@ -791,7 +808,7 @@ int long_real(char* buffer){
                 */
                 if(buffer[j - 1] - '0' == 0 && k != 2){
                   j = temp;
-                  shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Trailing zeros.");
+                  shift(buffer, j, "LEXERROR", LEXERROR, TRAILING_ZEROS, "Trailing zeros.");
                   whitespace(buffer);
                   return 1;
                 }
