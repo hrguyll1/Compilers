@@ -199,7 +199,7 @@ int get_reserved_words(){
 		}
 		attribute[k] = '\0';
 		reserved_words[i].i_attribute = atoi(attribute);
-		j = temp; 
+		j = temp;
                while(temp_buffer[j] != ' '){
                         k++;
                         j++;
@@ -495,326 +495,20 @@ int shift(char* buffer, int j, char* token_type, int token_i, int attribute, cha
 		print_token(new_token);
 		return 1;
 }
-/*
-	This should identify all acceptable numbers.
-*/
-/*
-int long_real(char* buffer){
-	int j = 0;
-	if(isdigit(buffer[0])){
-		//if the first digit is 0
-		if( buffer[0] = '0' == 0){
-		//check for certain cases. For example
-		//Certain cases:
-			//0.1
-			//0
-			//00
-			//01111
-			//0.01
-			j++;
-			if(buffer[j] == '.'){
-				//only acceptabe state
-				//jump to state 3
-				//reached state 3
-				j++;
-				//check for things like 1.0000E1
-				while(buffer[j] - '0' == 0){
-					j++;
-				}
-				if(!isdigit(buffer[j])){
-					//not a long real
-					//kickback to 
-					real(buffer);
-					whitespace(buffer);
-					return 0;
-
-				}else{
-					j++;
-					//STATE 4
-					while(isdigit(buffer[j])){
-						//Stay in STATE 4
-						j++;
-					}
-					if(buffer[j] == 'E'){
-						//STATE 5
-						j++;
-						if(buffer[j] == '+' || buffer[j] == '-'){
-							//STATE 6
-							j++;
-							if(isdigit(buffer[j])){
-								if(buffer[j] -'0' == 0){
-									//kick back
-									//not long_real
-									//zero exponent
-									j++;
-									while(isdigit(buffer[j])){
-										j++;
-									}
-									shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "Zeros exponent.");
-									whitespace(buffer);
-
-									return 1;
-								//ADD ERROR
-								}else{
-									j++;
-									//STATE 7
-									while(isdigit(buffer[j])){
-										j++;
-									}
-									//check length
-									shift(buffer);
-									whitespace(buffer);
-									return 1;
-									//whitespace
-								}
-							}else{
-								//kick back, not real
-							}
-						}else if(isdigit(buffer[j])){
-							//assume plus
-							if(buffer[j] -'0' == 0){
-								//kick back
-								//not long_real
-								//zero exponent
-							}else{
-								j++;
-								//STATE 7
-								while(isdigit(buffer[j])){
-									j++;
-								}
-								//check length
-								//shift
-								//whitespace
-							}
-						}else{
-							//kick back, not real
-						}
-					}else{
-						//kick back, not a real
-					}
-				}
-
-			}else if(isdigit(buffer[j])){//unacceptable
-				//something like 00E+1 or 00E1
-				//clear it
-				j++;
-				while(isdigit(buffer[j])){
-					j++;
-				}
-				if(buffer[j] == 'E'){
-					j++;
-					if(buffer[j] == '+' || buffer[j] == '-'){
-						j++;
-					}else if(isdigit(buffer[j])){
-
-					}else{
-						//kick back
-						return 0;
-					}
-					if(isdigit(buffer[j])){
-						while(isdigit(buffer[j])){
-							j++;
-						}
-						shift(buffer, j, "LEXERROR", LEXERROR, LEADING_ZEROS, "Leading Zeros");
-						whitespace(buffer);
-
-					}else{
-						//kick back
-						return 0;
-					}
-				}else{
-
-					//kick back bc we are at something like 0111x
-					return 0;
-				}
-
-			}else if(buffer[j] == 'E'){
-				j++;
-				if(buffer[j] == '+' || buffer[j] == '-'){
-					j++;
-				}else if(isdigit(buffer[j])){
-
-				}else{
-				//kick back
-					return 0;
-				}
-				if(isdigit(buffer[j])){
-					while(isdigit(buffer[j])){
-						j++;
-					}
-					shift(buffer, j, "LEXERROR", LEXERROR, LEADING_ZEROS, "Leading Zeros");
-					whitespace(buffer);
-					}else{
-					//kick back
-					return 0;
-				}
-				}else{
-
-					//kick back bc we are at something like 0111x
-					return 0;
-				}
-
-
-			}else{
-				//kick back
-				return 0;
-			}
-
-		}else{
-			j++;
-			//state 2
-			while(isdigit(buffer[j])){
-				//keep accepting digits
-				j++;
-			}
-			//check for state 3
-			if(buffer[j] == '.'){
-				//reached state 3
-				j++;
-				//check for things like 1.0000E1
-				while(buffer[j] - '0' == 0){
-					j++;
-				}
-				if(!isdigit(buffer[j])){
-					//not a long real
-					//kickback to 
-
-				}else{
-					j++;
-					//STATE 4
-					while(isdigit(buffer[j])){
-						//Stay in STATE 4
-						j++;
-					}
-					if(buffer[j] == 'E'){
-						//STATE 5
-						j++;
-						if(buffer[j] == '+' || buffer[j] == '-'){
-							//STATE 6
-							j++;
-							if(isdigit(buffer[j])){
-								if(buffer[j] -'0' == 0){
-									//kick back
-									//not long_real
-									//zero exponent
-
-								}else{
-									j++;
-									//STATE 7
-									while(isdigit(buffer[j])){
-										j++;
-									}
-									//check length
-									//shift
-									//whitespace
-								}
-							}else{
-								//kick back, not real
-							}
-						}else if(isdigit(buffer[j])){
-							//assume plus
-							if(buffer[j] -'0' == 0){
-								//kick back
-								//not long_real
-								//zero exponent
-							}else{
-								j++;
-								//STATE 7
-								while(isdigit(buffer[j])){
-									j++;
-								}
-								//check length
-								//shift
-								//whitespace
-							}
-						}else{
-							//kick back, not real
-						}
-					}else{
-						//kick back, not a real
-					}
-				}
-			}else if(buffer[j] == 'E'){
-				//reached state 5
-						//STATE 5
-						j++;
-						if(buffer[j] == '+' || buffer[j] == '-'){
-							//STATE 6
-							j++;
-							if(isdigit(buffer[j])){
-								if(buffer[j] -'0' == 0){
-									//kick back
-									//not long_real
-									//zero exponent
-
-								}else{
-									j++;
-									//STATE 7
-									while(isdigit(buffer[j])){
-										j++;
-									}
-									//check length
-									//shift
-									//whitespace
-								}
-							}else{
-								//kick back, not real
-							}
-						}else if(isdigit(buffer[j])){
-							//assume plus
-							if(buffer[j] -'0' == 0){
-								//kick back
-								//not long_real
-								//zero exponent
-							}else{
-								j++;
-								//STATE 7
-								while(isdigit(buffer[j])){
-									j++;
-								}
-								//check length
-								//shift
-								//whitespace
-							}
-						}else{
-							//kick back, not real
-						}
-			}else{
-				//not a long real!
-				//kick back to next machine
-			}
-
-
-
-		}
-	}else{
-		//not a long real
-		//kick to next machine
-	}
-
-
-
-
-
-
-}
-*/
 
 int long_real(char* buffer){
-
 	if(isdigit(buffer[0])){
-
-		//	If it starts with a 0 it is an error condition.
+		/*
+			If it starts with a 0 it is an error condition.
+		*/
 		if(buffer[0] - '0' == 0 && !isdigit(buffer[1]) && buffer[1] != '.'){
 			shift(buffer, 1, "INT", INT, -1, "value");
 			whitespace(buffer);
-		}
-		/*
-		else if(buffer[0] - '0' == 0 && buffer[1] != '.'){
+		}else if(buffer[0] - '0' == 0 && buffer[1] != '.'){
+      printf("Made it here!");
 			int j = 1;
 			//printf("Error in integer format. Cannot start with 0.\n");
 			//need to get the entire integer here.
-			j++;
 			while(isdigit(buffer[j])){
 				j++;
 			}
@@ -836,7 +530,6 @@ int long_real(char* buffer){
 			}else if(buffer[j] == 'E'){
 				//Still keep shifting
 					j++;
-
 				if((isdigit(buffer[j]) && buffer[j] - '0' != 0)|| buffer[j] == '+' || buffer[j] == '-'){
 					while(isdigit(buffer[j])){
 						j++;
@@ -845,7 +538,7 @@ int long_real(char* buffer){
 			}
 			shift(buffer, j, "LEXERROR", LEXERROR, LEADING_ZEROS, "Leading Zeros");
 			whitespace(buffer);
-	*/
+    }
 		else{
 			int j = 1;
 			while(isdigit(buffer[j])){
@@ -855,47 +548,21 @@ int long_real(char* buffer){
 				//must include digit
 				j++;
 				if(!isdigit(buffer[j])){
-					//	Need to remove the broken number
-
+					/*
+						Need to remove the broken number
+					*/
 					shift(buffer, j + 1, "LEXERROR", LEXERROR, FRACTION_SMALL, "Need digit after .");
 					whitespace(buffer);
 				}else{
-/*9/20*/
-					/*
-					int zero_count = 0;
-					while(buffer[j] - '0' == 0){
-						zero_count++;
-						j++;
-					}
-					*/
-				//	if(isdigit(buffer[j])){
-						//it's okay because it's like: 0.01 or 0.001
-						//fine
-				//	}else{
-						//extract broken number because of trailing zeros and throw error.
-						j++;
-						while(isdigit(buffer[j])){
-							j++;
-						}
-						if(buffer[j] == 'E' && (buffer[j + 1] == '+' || buffer[j + 1] == '-'|| isdigit(buffer[j + 1] ))){
-							j++; j++;
-							while(isdigit(buffer[j])){
-								j++;
-							}
-							shift(buffer, j, "LEXERROR", LEXERROR, LEADING_ZEROS, "Leading Zeros");
-							whitespace(buffer);
-							return 0;
-						}
-
-				//	}
 					while(isdigit(buffer[j])){
 						//keep incrementing
 						j++;
 					}
-
 					//found long
-					//	Something like: 1.23E+13
-					if(buffer[j] == 'E' && ((buffer[j + 1] == '+' && isdigit(buffer[j + 2]))|| (buffer[j + 1] == '-'  && isdigit(buffer[j + 2]))|| isdigit(buffer[j + 1]))){
+					/*
+						Something like: 1.23E+13
+					*/
+					if(buffer[j] == 'E'){
 						j++;
 						if(buffer[j] == '+' || buffer[j] == '-'){
 							j++;
@@ -903,8 +570,6 @@ int long_real(char* buffer){
 								j++;
 							}
 							int k = 0;
-
-							//Shift buffer and print out the long real
 
 							//First do checks:
 							int temp = j;
@@ -915,7 +580,7 @@ int long_real(char* buffer){
 							}
 							if(j > 5){
 								j = temp;
-								shift(buffer, j, "LEXERROR", LEXERROR, FRACTION_LONG, "First part too long.");
+								shift(buffer, j, "LEXERROR", LEXERROR, FRACTION_LONG, "Fraction part too long.");
 								whitespace(buffer);
 								return 1;
 							}else{
@@ -929,10 +594,20 @@ int long_real(char* buffer){
 								}
 								if(k > 5){
 									j = temp;
-									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Last part too long.");
+									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Decimal portion too long.");
 									whitespace(buffer);
 									return 1;
 								}
+                /*
+                  Else...
+                  Check if there are trailing zeros
+                */
+                if(buffer[j - 1] - '0' == 0){
+                  j = temp;
+                  shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Trailing zeros.");
+                  whitespace(buffer);
+                  return 1;
+                }
 								//Now check if the part after the E is too long.
 								k = 0;
 								//increment by 2 because this is of the type 1.23E+21
@@ -943,7 +618,7 @@ int long_real(char* buffer){
 								}
 								if(k > 2){
 									j = temp;
-									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Last part too long.");
+									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Decimal portion too long.");
 									whitespace(buffer);
 									return 1;
 								}
@@ -963,14 +638,16 @@ int long_real(char* buffer){
 									k++;
 									j++;
 								}
-								if(k == 2){
+								if(k == 3){
+
 									if(buffer[temp - k] - '0' == 0 && buffer[temp - k + 1] - '0' == 0){
+
 										j = temp;
-										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "Zero exponent.");
+										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "LEXERROR. 0 EXPONENT.");
 										whitespace(buffer);
 										return 1;
 									}
-									if(buffer[temp - k] - '0' == 0){
+									if(buffer[temp - 1] - '0' == 0){
 										shift(buffer, temp - k - 2, "REAL", REAL, -2, "value");
 										whitespace(buffer);
 										return -1;
@@ -978,7 +655,7 @@ int long_real(char* buffer){
 								}else if(k == 1){
 									if(buffer[temp - k] - '0' == 0){
 										j = temp;
-										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "Zero exponent.");
+										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "LEXERROR. 0 EXPONENT.");
 										whitespace(buffer);
 										return 1;
 									}
@@ -1005,7 +682,7 @@ int long_real(char* buffer){
 							}
 							if(j > 5){
 								j = temp;
-								shift(buffer, j, "LEXERROR", LEXERROR, FRACTION_LONG, "First part too long.");
+								shift(buffer, j, "LEXERROR", LEXERROR, FRACTION_LONG, "Fraction part too long.");
 								whitespace(buffer);
 								return 1;
 							}else{
@@ -1019,7 +696,7 @@ int long_real(char* buffer){
 								}
 								if(k > 5){
 									j = temp;
-									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Last part too long.");
+									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Decimal portion too long.");
 									whitespace(buffer);
 									return 1;
 								}
@@ -1033,7 +710,7 @@ int long_real(char* buffer){
 								}
 								if(k > 2){
 									j = temp;
-									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Last part too long.");
+									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Decimal portion too long.");
 									whitespace(buffer);
 									return 1;
 								}
@@ -1046,7 +723,12 @@ int long_real(char* buffer){
 									}
 //new addition
 									if(buffer[temp - k] - '0' == 0){
-										shift(buffer, temp - k - 1, "REAL", REAL, -2, "value");
+                    j = temp;
+										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT,"Zero exponent.");
+										whitespace(buffer);
+										return 1;
+                  }else{
+										shift(buffer, temp, "REAL", REAL, -2, "value");
 										whitespace(buffer);
 										return -1;
 									}
@@ -1056,8 +738,8 @@ int long_real(char* buffer){
 										j = temp;
 										shift(buffer, j, "LEXERROR", LEXERROR, ZERO_EXPONENT, "Zero exponent.");
 										whitespace(buffer);
-									return 1;
-								}
+									           return 1;
+								   }
 
 									j = temp;
 					 				shift(buffer, j, "LONG_REAL", LONG_REAL, -3, "value");
@@ -1098,11 +780,21 @@ int long_real(char* buffer){
 								}
 								if(k > 6){
 									j = temp;
-									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Last part too long.");
+									shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Last half of float too long.");
 									whitespace(buffer);
 									return 1;
 								}
-								//else, it's fine
+								//else, it's fine...probably
+                /*
+                  Else...
+                  Check if there are trailing zeros
+                */
+                if(buffer[j - 1] - '0' == 0 && k != 2){
+                  j = temp;
+                  shift(buffer, j, "LEXERROR", LEXERROR, DECIMAL_LONG, "Trailing zeros.");
+                  whitespace(buffer);
+                  return 1;
+                }
 								j = temp;
 								shift(buffer, j, "REAL", REAL, -1, "value");
 								whitespace(buffer);
@@ -1110,12 +802,11 @@ int long_real(char* buffer){
 					//	}
 					}
 				}
-			//	Something like 10E+13
+			/*
+				Something like 10E+13
+			*/
 			}else if(buffer[j] == 'E'){
-		//	}else if(buffer[j] == 'E' && ((buffer[j + 1] == '+' && isdigit(buffer[j + 2]))|| (buffer[j + 1] == '-'  && isdigit(buffer[j + 2]))|| isdigit(buffer[j + 1]))){
-
 				j++;
-
 				if(buffer[j] == '+' || buffer[j] == '-'){
 					j++;
 					while(isdigit(buffer[j])){
@@ -1132,7 +823,7 @@ int long_real(char* buffer){
 					}
 					if(j > 5){
 						j = temp;
-						shift(buffer, j, "LEXERROR", LEXERROR, FRACTION_LONG, "First part too long.");
+						shift(buffer, j, "LEXERROR", LEXERROR, FRACTION_LONG, "Fraction part too long.");
 						whitespace(buffer);
 						return 1;
 					}else{
@@ -1191,7 +882,9 @@ int long_real(char* buffer){
 						shift(buffer, j, "LONG_REAL", LONG_REAL, -3, "value");
 						whitespace(buffer);
 					}
-					//Something like 123E21
+				/*
+					Something like 123E21
+				*/
 				}else if(isdigit(buffer[j])){
 					//Assume it is a plus:
 					j++;
@@ -1208,7 +901,7 @@ int long_real(char* buffer){
 					}
 					if(j > 5){
 						j = temp;
-						shift(buffer, j, "LEXERROR", LEXERROR, FRACTION_LONG, "First part too long.");
+						shift(buffer, j, "LEXERROR", LEXERROR, FRACTION_LONG, "Fraction part too long.");
 						whitespace(buffer);
 						return 1;
 					}else{
