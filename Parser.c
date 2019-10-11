@@ -1280,31 +1280,21 @@ int factor1(struct token *t, char* buffer){
       match(CLOSE_BRACKET, t, buffer);
       return 1;
     case ADDOP:
-    //ADDOP : epsilon
       return 1;
     case MULOP:
-    //MULOP : epsilon
       return 1;
-    // case MOD:
-    //   return 1;
     case DIVISION:
       return 1;
     case NOT:
-    //NOT : epsilon
       return 1;
     case RELOP:
       return 1;
-    // case AND:
-    //   return 1;
-    // case OR:
-    //   return 1;
     case CLOSE_PAREN:
       return 1;
     case CLOSE_BRACKET:
       return 1;
     case DO:
       return 1;
-  //mulop & relop & addop & ) & ] & do & else & end & ; & , & then
     case ELSE:
       return 1;
     case THEN:
